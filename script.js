@@ -1,7 +1,7 @@
 // webapp/script.js (финальная версия с обходом защиты localtunnel)
 
 // Вставьте сюда свой URL, который выдал localtunnel
-const API_BASE_URL = "https://sweet-pens-sort.loca.lt";
+const API_BASE_URL = "https://tidy-snails-think.loca.lt";
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;

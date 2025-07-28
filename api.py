@@ -1,7 +1,8 @@
 # api.py
 
 import logging
-from datetime import date
+from datetime import date, timedelta
+import asyncio
 import json
 import hmac
 import hashlib
@@ -9,7 +10,7 @@ import hashlib
 from aiohttp import web
 from telegram.ext import Application
 
-from config import LOCATIONS_CONFIG, BOT_TOKEN
+from config import LOCATIONS_CONFIG, BOT_TOKEN, MAX_SPECIFIC_DAYS
 from parser import fetch_availability_for_location_date
 from database import db
 
@@ -43,7 +44,7 @@ async def get_locations(request):
 
 
 async def get_sessions(request):
-    """Отдает доступные сеансы для выбранной локации и даты."""
+    """Отдает доступные сеансы для выбранной локации и ОДНОЙ даты."""
     location = request.query.get('location')
     date_str = request.query.get('date')
     if not location or not date_str:
@@ -56,6 +57,31 @@ async def get_sessions(request):
         return web.json_response(availability)
     except Exception as e:
         logger.error(f"Ошибка при получении сеансов через API: {e}")
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
+# ИЗМЕНЕНО: Новый эндпоинт для календаря
+async def get_calendar_data(request):
+    """Отдает список дат с доступными сеансами на 30 дней вперед."""
+    location = request.query.get('location')
+    if not location:
+        return web.json_response({"error": "Location is required"}, status=400)
+
+    try:
+        session = request.app['bot_app'].bot_data['aiohttp_session']
+        today = date.today()
+        dates_to_check = [today + timedelta(days=i) for i in range(MAX_SPECIFIC_DAYS)]
+
+        tasks = [fetch_availability_for_location_date(session, location, d) for d in dates_to_check]
+        results = await asyncio.gather(*tasks)
+
+        available_dates = [
+            d.isoformat() for d, res in zip(dates_to_check, results) if res
+        ]
+
+        return web.json_response({"available_dates": available_dates})
+    except Exception as e:
+        logger.error(f"Ошибка при получении данных для календаря: {e}")
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -89,4 +115,5 @@ def setup_api_routes(app: Application, web_app: web.Application):
     """Настраивает роуты для API."""
     web_app.router.add_get("/api/locations", get_locations)
     web_app.router.add_get("/api/sessions", get_sessions)
+    web_app.router.add_get("/api/calendar", get_calendar_data)  # ИЗМЕНЕНО: Регистрация нового роута
     web_app.router.add_post("/api/subscribe", add_subscription)

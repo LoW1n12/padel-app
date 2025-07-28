@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Padel Bot</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Экран 1: Выбор локации -->
+        <div id="location-screen" class="screen active">
+            <header>
+                <h1>Доступные сеансы</h1>
+            </header>
+            <main>
+                <div id="location-list" class="list">
+                    <!-- Локации будут загружены сюда -->
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Экран 2: Просмотр сеансов -->
+        <div id="sessions-screen" class="screen">
+            <header>
+                <button id="back-to-locations" class="back-button">
+                    <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Локации</span>
+                </button>
+                <h1 id="sessions-header"></h1>
+            </header>
+            <main>
+                <div class="date-picker">
+                    <button id="prev-day">&lt;</button>
+                    <span id="current-date"></span>
+                    <button id="next-day">&gt;</button>
+                </div>
+                <div id="sessions-list" class="list">
+                    <!-- Сеансы будут загружены сюда -->
+                </div>
+                 <div class="floating-button-container">
+                    <button id="add-notification-btn" class="action-button">🔔 Добавить уведомление</button>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

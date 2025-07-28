@@ -7,7 +7,6 @@
     --tg-theme-hint-color: #999999;
     --tg-theme-secondary-bg-color: #f2f2f7;
 
-    /* Apple Style Palette */
     --apple-blue: #007AFF;
     --apple-gray-light: #f2f2f7;
     --apple-gray-dark: #e5e5ea;
@@ -18,15 +17,14 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
     margin: 0;
     padding: 0;
-    background-color: var(--tg-theme-secondary-bg-color, var(--apple-gray-light));
+    background-color: var(--tg-theme-bg-color, #fff);
     color: var(--tg-theme-text-color, #000);
-    overscroll-behavior-y: none; /* Убирает "оттягивание" страницы на iOS */
+    overscroll-behavior-y: none;
 }
 
 .app-container {
     max-width: 100%;
     margin: 0 auto;
-    background-color: var(--tg-theme-bg-color, #fff);
 }
 
 header {
@@ -34,127 +32,103 @@ header {
     border-bottom: 0.5px solid var(--apple-separator-color);
     text-align: center;
     position: relative;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-header h1 {
-    margin: 0;
-    font-size: 17px;
-    font-weight: 600;
-}
+header h1 { margin: 0; font-size: 17px; font-weight: 600; }
 
 .back-button {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
+    position: absolute; left: 8px; top: 50%;
+    transform: translateY(-50%); background: none; border: none;
     color: var(--tg-theme-button-color, var(--apple-blue));
-    font-size: 17px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 8px;
+    font-size: 17px; cursor: pointer; display: flex;
+    align-items: center; padding: 8px;
 }
-.back-button svg {
-    stroke: var(--tg-theme-button-color, var(--apple-blue));
-    margin-right: 4px;
-}
+.back-button svg { stroke: var(--tg-theme-button-color, var(--apple-blue)); margin-right: 4px; }
 
-main {
-    padding: 0;
-}
-
-.list {
-    background-color: var(--tg-theme-bg-color, #fff);
-}
+main { padding: 0; }
+.list { background-color: var(--tg-theme-bg-color, #fff); }
 
 .list-item {
-    padding: 12px 16px;
-    border-bottom: 0.5px solid var(--apple-separator-color);
-    cursor: pointer;
-    transition: background-color 0.2s;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 12px 16px; border-bottom: 0.5px solid var(--apple-separator-color);
+    cursor: pointer; transition: background-color 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
 }
-.list-item:active {
-    background-color: var(--apple-gray-dark);
-}
-.list-item-title {
-    font-size: 17px;
-}
-.list-item-subtitle {
-    font-size: 15px;
-    color: var(--tg-theme-hint-color, #8e8e93);
-}
-.list-item .chevron {
-    color: var(--apple-separator-color);
-}
-.list-item:last-child {
-    border-bottom: none;
-}
+.list-item:active { background-color: var(--apple-gray-dark); }
+.list-item-title { font-size: 17px; }
+.list-item-subtitle { font-size: 15px; color: var(--tg-theme-hint-color, #8e8e93); }
+.list-item .chevron { color: var(--apple-separator-color); }
+.list-item:last-child { border-bottom: none; }
 
 .screen { display: none; }
 .screen.active { display: block; }
+.skeleton-item { background-color: #e1e1e1; height: 50px; margin: 8px 16px; border-radius: 8px; opacity: 0.5; }
 
-.date-picker {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: var(--tg-theme-secondary-bg-color, var(--apple-gray-light));
-}
-.date-picker button {
-    background: none;
-    border: none;
-    color: var(--tg-theme-button-color, var(--apple-blue));
-    font-size: 24px;
-    font-weight: 400;
-    cursor: pointer;
-    padding: 4px 12px;
-}
-.date-picker span {
-    font-size: 17px;
-    font-weight: 600;
-}
+/* --- ИЗМЕНЕНО: Стили календаря --- */
+.calendar-container { padding: 0 8px; }
+.calendar-header { padding: 16px 8px 8px; }
+.calendar-header h2 { margin: 0; font-size: 22px; font-weight: 700; text-align: left; }
+.weekdays-grid, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.weekdays-grid div { font-size: 13px; font-weight: 500; color: var(--tg-theme-hint-color, #8e8e93); padding: 8px 0; }
 
-#sessions-list.empty {
-    padding: 40px 16px;
-    text-align: center;
-    color: var(--tg-theme-hint-color, #8e8e93);
-    font-size: 17px;
+.calendar-day {
+    font-size: 17px; height: 44px; display: flex; justify-content: center;
+    align-items: center; position: relative; border-radius: 50%;
 }
-
-.skeleton-item {
-    background-color: #e1e1e1;
-    height: 50px;
-    margin: 8px 16px;
-    border-radius: 8px;
-    opacity: 0.5;
-}
-
-.floating-button-container {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-}
-
-.action-button {
+.calendar-day.is-in-month { cursor: pointer; }
+.calendar-day.is-disabled { color: var(--tg-theme-hint-color, #8e8e93); }
+.calendar-day.is-today span {
     background-color: var(--tg-theme-button-color, var(--apple-blue));
     color: var(--tg-theme-button-text-color, #fff);
-    border: none;
-    border-radius: 12px;
-    padding: 14px 20px;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.1s ease-out;
+    border-radius: 50%; display: inline-block; width: 32px; height: 32px; line-height: 32px;
 }
-.action-button:active {
-    transform: scale(0.97);
+.calendar-day.has-sessions::after {
+    content: ''; position: absolute; bottom: 6px; left: 50%;
+    transform: translateX(-50%); width: 5px; height: 5px;
+    background-color: var(--tg-theme-button-color, var(--apple-blue)); border-radius: 50%;
+}
+.calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color, #fff); }
+
+/* --- ИЗМЕНЕНО: Стили модального окна --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4); display: flex;
+    justify-content: center; align-items: flex-end;
+    opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.visible { opacity: 1; visibility: visible; }
+.modal-content {
+    background: var(--tg-theme-secondary-bg-color, var(--apple-gray-light));
+    width: 100%; max-width: 500px;
+    border-top-left-radius: 16px; border-top-right-radius: 16px;
+    transform: translateY(100%); transition: transform 0.3s ease-out;
+    max-height: 80vh; display: flex; flex-direction: column;
+}
+.modal-overlay.visible .modal-content { transform: translateY(0); }
+
+.modal-header {
+    padding: 16px; text-align: center; position: relative;
+    border-bottom: 0.5px solid var(--apple-separator-color);
+}
+.modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.close-button {
+    position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%); font-size: 24px; font-weight: 400;
+    color: var(--tg-theme-hint-color, #8e8e93); background: none; border: none; cursor: pointer;
+}
+.modal-body {
+    padding: 0; overflow-y: auto;
+    background-color: var(--tg-theme-bg-color, #fff);
+}
+.modal-footer {
+    padding: 16px;
+    background-color: var(--tg-theme-secondary-bg-color, var(--apple-gray-light));
+}
+.action-button {
+    background-color: var(--tg-theme-button-color, var(--apple-blue));
+    color: var(--tg-theme-button-text-color, #fff); border: none;
+    border-radius: 12px; padding: 14px 20px; font-size: 17px;
+    font-weight: 600; cursor: pointer; width: 100%;
 }

@@ -9,14 +9,13 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Экран 1: Выбор локации -->
+        <!-- Экран 1: Выбор локации (без изменений) -->
         <div id="location-screen" class="screen active">
             <header>
                 <h1>Доступные сеансы</h1>
             </header>
             <main>
                 <div id="location-list" class="list">
-                    <!-- Локации будут загружены сюда -->
                     <div class="skeleton-item"></div>
                     <div class="skeleton-item"></div>
                     <div class="skeleton-item"></div>
@@ -24,30 +23,45 @@
             </main>
         </div>
 
-        <!-- Экран 2: Просмотр сеансов -->
-        <div id="sessions-screen" class="screen">
+        <!-- ИЗМЕНЕНО: Экран 2 теперь содержит календарь -->
+        <div id="calendar-screen" class="screen">
             <header>
                 <button id="back-to-locations" class="back-button">
                     <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>Локации</span>
                 </button>
-                <h1 id="sessions-header"></h1>
+                <h1 id="calendar-location-header"></h1>
             </header>
-            <main>
-                <div class="date-picker">
-                    <button id="prev-day">&lt;</button>
-                    <span id="current-date"></span>
-                    <button id="next-day">&gt;</button>
+            <main class="calendar-container">
+                <div class="calendar-header">
+                    <h2 id="month-year-header">Июль 2025</h2>
                 </div>
-                <div id="sessions-list" class="list">
-                    <!-- Сеансы будут загружены сюда -->
+                <div class="weekdays-grid">
+                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
                 </div>
-                 <div class="floating-button-container">
-                    <button id="add-notification-btn" class="action-button">🔔 Добавить уведомление</button>
+                <div id="calendar-grid" class="calendar-grid">
+                    <!-- Дни календаря будут сгенерированы сюда -->
                 </div>
             </main>
         </div>
     </div>
+
+    <!-- ИЗМЕНЕНО: Модальное окно для деталей по дню -->
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-date-header"></h3>
+                <button id="close-modal-btn" class="close-button">&times;</button>
+            </div>
+            <div id="modal-sessions-list" class="modal-body">
+                <!-- Список сеансов на выбранный день -->
+            </div>
+            <div class="modal-footer">
+                <button id="add-notification-btn" class="action-button">🔔 Уведомить о сеансах на эту дату</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

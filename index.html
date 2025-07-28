@@ -2,62 +2,54 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Padel Bot</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="app-container">
-        <!-- Экран 1: Выбор локации (без изменений) -->
+        <!-- Экран 1: Выбор локации -->
         <div id="location-screen" class="screen active">
             <header>
-                <h1>Доступные сеансы</h1>
+                <h1>Выберите клуб</h1>
             </header>
             <main>
-                <div id="location-list" class="list">
-                    <div class="skeleton-item"></div>
-                    <div class="skeleton-item"></div>
-                    <div class="skeleton-item"></div>
+                <div id="location-list" class="location-list">
+                    <!-- Карточки локаций будут здесь -->
                 </div>
             </main>
         </div>
 
-        <!-- ИЗМЕНЕНО: Экран 2 теперь содержит календарь -->
+        <!-- Экран 2: Календарь -->
         <div id="calendar-screen" class="screen">
             <header>
-                <button id="back-to-locations" class="back-button">
-                    <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span>Локации</span>
-                </button>
                 <h1 id="calendar-location-header"></h1>
             </header>
             <main class="calendar-container">
                 <div class="calendar-header">
-                    <h2 id="month-year-header">Июль 2025</h2>
+                    <button id="prev-month-btn" class="month-nav-btn">&lt;</button>
+                    <h2 id="month-year-header"></h2>
+                    <button id="next-month-btn" class="month-nav-btn">&gt;</button>
                 </div>
                 <div class="weekdays-grid">
                     <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
                 </div>
-                <div id="calendar-grid" class="calendar-grid">
-                    <!-- Дни календаря будут сгенерированы сюда -->
-                </div>
+                <div id="calendar-grid" class="calendar-grid"></div>
             </main>
         </div>
     </div>
 
-    <!-- ИЗМЕНЕНО: Модальное окно для деталей по дню -->
+    <!-- Модальное окно для деталей по дню -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-date-header"></h3>
                 <button id="close-modal-btn" class="close-button">&times;</button>
             </div>
-            <div id="modal-sessions-list" class="modal-body">
-                <!-- Список сеансов на выбранный день -->
-            </div>
+            <div id="modal-sessions-list" class="modal-body"></div>
             <div class="modal-footer">
-                <button id="add-notification-btn" class="action-button">🔔 Уведомить о сеансах на эту дату</button>
+                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
             </div>
         </div>
     </div>

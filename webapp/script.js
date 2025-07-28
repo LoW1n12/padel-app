@@ -1,13 +1,16 @@
-// script.js
+// webapp/script.js (финальная версия с обходом защиты localtunnel)
+
+// Вставьте сюда свой URL, который выдал localtunnel
+const API_BASE_URL = "https://sweet-pens-sort.loca.lt";
+
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
+    tg.expand();
 
-    // Экраны
+    // ... (Экраны и Элементы UI без изменений) ...
     const locationScreen = document.getElementById('location-screen');
     const sessionsScreen = document.getElementById('sessions-screen');
-
-    // Элементы UI
     const locationList = document.getElementById('location-list');
     const sessionsList = document.getElementById('sessions-list');
     const sessionsHeader = document.getElementById('sessions-header');
@@ -20,22 +23,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDate = new Date();
     let selectedLocation = null;
 
-    // --- Функции навигации ---
     function showScreen(screen) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         screen.classList.add('active');
     }
 
-    // --- Функции загрузки данных ---
+    // --- ИЗМЕНЕНО: Добавлен заголовок для обхода защиты ---
+    async function fetchAPI(path) {
+        const response = await fetch(`${API_BASE_URL}${path}`, {
+            headers: {
+                // Этот заголовок говорит localtunnel пропустить страницу с паролем
+                'Bypass-Tunnel-Reminder': 'true'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    }
+
     async function fetchLocations() {
         try {
-            // В реальном приложении URL будет из конфига, например '/api/locations'
-            const response = await fetch('/api/locations');
-            const data = await response.json();
+            const data = await fetchAPI('/api/locations');
             renderLocations(data.locations);
         } catch (error) {
             console.error('Ошибка загрузки локаций:', error);
-            locationList.innerHTML = '<div class="list-item">Не удалось загрузить локации</div>';
+            locationList.innerHTML = '<div class="list-item">Не удалось загрузить локации. Убедитесь, что бот и localtunnel запущены.</div>';
         }
     }
 
@@ -45,9 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionsList.innerHTML = '<div class="skeleton-item"></div><div class="skeleton-item"></div>';
 
         try {
-            // Аналогично, URL будет '/api/sessions'
-            const response = await fetch(`/api/sessions?location=${encodeURIComponent(selectedLocation)}&date=${dateString}`);
-            const data = await response.json();
+            const data = await fetchAPI(`/api/sessions?location=${encodeURIComponent(selectedLocation)}&date=${dateString}`);
             renderSessions(data);
         } catch (error) {
             console.error('Ошибка загрузки сеансов:', error);
@@ -55,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Функции отрисовки ---
     function renderLocations(locations) {
         locationList.innerHTML = '';
         locations.forEach(loc => {
@@ -95,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Обработчики событий ---
     backToLocationsBtn.addEventListener('click', () => {
         showScreen(locationScreen);
     });
@@ -113,28 +122,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addNotificationBtn.addEventListener('click', () => {
-        // Здесь мы можем показать пользователю модальное окно или
-        // просто использовать MainButton для подтверждения
         tg.MainButton.setText(`Уведомить о сеансах`);
         tg.MainButton.show();
         tg.MainButton.onClick(async () => {
             const subscription = {
                 location: selectedLocation,
-                hour: -1, // -1 означает любое время
-                court_types: ["Корт для 4-х", "Корт для 2-х"], // Для примера, можно дать выбор
+                hour: -1,
+                court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],
                 monitor_data: { type: "specific", value: currentDate.toISOString().split('T')[0] }
             };
 
             try {
-                await fetch('/api/subscribe', {
+                 // --- ИЗМЕНЕНО: Добавлен заголовок и в этот запрос ---
+                await fetch(`${API_BASE_URL}/api/subscribe`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Bypass-Tunnel-Reminder': 'true'
+                    },
                     body: JSON.stringify({
                         initData: tg.initData,
                         subscription: subscription
                     })
                 });
-                tg.close(); // Закрываем Mini App после успешной подписки
+                tg.close();
             } catch (error) {
                 console.error('Ошибка подписки:', error);
                 tg.showAlert('Не удалось добавить уведомление.');
@@ -142,6 +153,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Инициализация
     fetchLocations();
 });

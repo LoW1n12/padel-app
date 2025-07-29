@@ -1,7 +1,7 @@
 // webapp/script.js
 const API_BASE_URL = "https://curly-birds-matter.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
-
+// webapp/script.js
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
@@ -10,21 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
-    // UI Элементы
-    const screens = { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen'), };
-    const modal = {
-        overlay: document.getElementById('detail-modal'), dateHeader: document.getElementById('modal-date-header'),
-        sessionsList: document.getElementById('modal-sessions-list'), closeBtn: document.getElementById('close-modal-btn'),
-        notifyBtn: document.getElementById('add-notification-btn'),
-    };
+    const screens = { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen') };
+    const modal = { overlay: document.getElementById('detail-modal'), dateHeader: document.getElementById('modal-date-header'), sessionsList: document.getElementById('modal-sessions-list'), closeBtn: document.getElementById('close-modal-btn'), notifyBtn: document.getElementById('add-notification-btn') };
     const locationList = document.getElementById('location-list');
     const calendarWrapper = document.getElementById('calendar-wrapper');
     const loaderContainer = document.getElementById('loader-container');
     const calendarGrids = { current: document.getElementById('calendar-grid-current'), next: document.getElementById('calendar-grid-next') };
     const monthYearHeaders = { current: document.getElementById('month-year-header-current'), next: document.getElementById('month-year-header-next') };
 
-    // Состояние приложения
-    let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null, };
+    let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null };
 
     function showScreen(screenName) {
         Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -53,10 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
             state.availableDates = new Set(data.available_dates);
-            console.log("Свободные даты получены:", Array.from(state.availableDates)); // Для отладки
+            console.log("[LOG] Даты с сессиями получены от API:", Array.from(state.availableDates));
             renderTwoMonthCalendar();
         } catch (error) {
-            console.error('Ошибка загрузки данных для календаря:', error);
+            console.error('[ERROR] Ошибка загрузки данных для календаря:', error);
         } finally {
             loaderContainer.classList.add('hidden');
             calendarWrapper.classList.remove('hidden');
@@ -85,55 +79,60 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
         const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-        renderCalendar(currentMonthDate, calendarGrids.current, monthYearHeaders.current);
-        renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next);
+        renderCalendar(currentMonthDate, calendarGrids.current, monthYearHeaders.current, true);
+        renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next, false);
     }
 
     // ИЗМЕНЕНО: Полностью переписанная, более надежная логика отрисовки
-    function renderCalendar(date, gridElement, headerElement) {
+    function renderCalendar(date, gridElement, headerElement, isCurrentMonth) {
         gridElement.innerHTML = '';
         const year = date.getFullYear();
         const month = date.getMonth();
         headerElement.textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
 
-        const firstDayOfMonth = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
-        const todayDate = today.getDate();
-        const todayMonth = today.getMonth();
-        const todayYear = today.getFullYear();
 
-        let dayOfWeek = firstDayOfMonth.getDay();
-        if (dayOfWeek === 0) dayOfWeek = 7;
+        let firstDay = new Date(year, month, 1).getDay();
+        if (firstDay === 0) firstDay = 7;
 
-        for (let i = 1; i < dayOfWeek; i++) {
+        // Добавляем пустые ячейки для дней недели до 1-го числа
+        for (let i = 1; i < firstDay; i++) {
             gridElement.appendChild(document.createElement('div'));
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day';
             const currentDate = new Date(year, month, day);
 
-            // Проверяем, не является ли день прошедшим
-            if (year < todayYear || (year === todayYear && month < todayMonth) || (year === todayYear && month === todayMonth && day < todayDate)) {
-                 dayCell.classList.add('is-disabled');
-            } else {
-                const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            // Если это текущий месяц, и день уже прошел - рисуем пустую ячейку
+            if (isCurrentMonth && currentDate < today.setHours(0,0,0,0)) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'calendar-day is-placeholder';
+                gridElement.appendChild(placeholder);
+                continue;
+            }
 
-                if (state.availableDates.has(fullDateStr)) {
-                    dayCell.classList.add('is-active', 'has-sessions');
-                    dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-                } else {
-                     dayCell.classList.add('is-disabled');
-                }
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+
+            const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Проверяем, есть ли сессии в этот день
+            const hasSessions = state.availableDates.has(fullDateStr);
+            console.log(`[LOG] Проверка даты: ${fullDateStr}. Есть сессии: ${hasSessions}`);
+
+            if (hasSessions) {
+                dayCell.classList.add('is-active', 'has-sessions');
+                dayCell.addEventListener('click', () => onDateClick(fullDateStr));
+            } else {
+                dayCell.classList.add('is-disabled');
             }
 
             const span = document.createElement('span');
             span.textContent = day;
             dayCell.appendChild(span);
 
-            if (day === todayDate && month === todayMonth && year === todayYear) {
+            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayCell.classList.add('is-today');
             }
 
@@ -159,24 +158,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (код функции без изменений) ...
         modal.sessionsList.innerHTML = '';
         const sortedTimes = Object.keys(data).sort();
-        if (sortedTimes.length === 0) {
-            modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>'; return;
-        }
-        const listWrapper = document.createElement('div');
-        listWrapper.style.padding = '0 16px 16px';
-        const list = document.createElement('div');
-        list.style.borderRadius = '12px'; list.style.overflow = 'hidden';
+        if (sortedTimes.length === 0) { modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>'; return; }
+        const listWrapper = document.createElement('div'); listWrapper.style.padding = '0 16px 16px';
+        const list = document.createElement('div'); list.style.borderRadius = '12px'; list.style.overflow = 'hidden';
 
         sortedTimes.forEach(time => {
             const courtData = data[time];
             let details = Object.entries(courtData).map(([type, info]) => `${type} - ${info.price} ₽`).join(' | ');
-            const item = document.createElement('div');
-            item.className = 'list-item';
+            const item = document.createElement('div'); item.className = 'list-item';
             item.innerHTML = `<div class="list-item-title">${time}</div><div class="list-item-subtitle">${details}</div>`;
             list.appendChild(item);
         });
-        listWrapper.appendChild(list);
-        modal.sessionsList.appendChild(listWrapper);
+        listWrapper.appendChild(list); modal.sessionsList.appendChild(listWrapper);
     }
 
     function closeModal() { modal.overlay.classList.remove('visible'); }
@@ -184,17 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function onConfirmNotification() {
         // ... (код функции без изменений) ...
         tg.MainButton.showProgress();
-        const subscription = {
-            location: state.selectedLocation, hour: -1,
-            court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],
-            monitor_data: { type: "specific", value: state.selectedDateForModal }
-        };
+        const subscription = { location: state.selectedLocation, hour: -1, court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"], monitor_data: { type: "specific", value: state.selectedDateForModal } };
         try {
-            const response = await fetch(`${API_BASE_URL}/api/subscribe`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
-                body: JSON.stringify({ initData: tg.initData, subscription: subscription })
-            });
+            const response = await fetch(`${API_BASE_URL}/api/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' }, body: JSON.stringify({ initData: tg.initData, subscription: subscription }) });
             if (!response.ok) throw new Error('Subscription failed');
             tg.showAlert('Уведомление успешно добавлено!');
         } catch (error) {

@@ -1,109 +1,226 @@
-/* style.css */
 :root {
-    --tg-theme-bg-color: #f0f3f8;
-    --tg-theme-text-color: #000000;
-    --tg-theme-button-color: #007aff;
-    --tg-theme-button-text-color: #ffffff;
-    --tg-theme-hint-color: #6d6d72;
-    --tg-theme-secondary-bg-color: #ffffff;
-    --tg-viewport-height: 100vh;
+    /* Переменные Telegram для адаптации под тему */
+    --tg-theme-bg-color: var(--tg-theme-bg-color, #ffffff);
+    --tg-theme-text-color: var(--tg-theme-text-color, #000000);
+    --tg-theme-hint-color: var(--tg-theme-hint-color, #999999);
+    --tg-theme-link-color: var(--tg-theme-link-color, #2481cc);
+    --tg-theme-button-color: var(--tg-theme-button-color, #2481cc);
+    --tg-theme-button-text-color: var(--tg-theme-button-text-color, #ffffff);
+    --tg-theme-secondary-bg-color: var(--tg-theme-secondary-bg-color, #f3f2f7);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
-    margin: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color);
-    overscroll-behavior-y: none; height: var(--tg-viewport-height); overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 15px;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
-.app-container { height: 100%; display: flex; flex-direction: column; }
-header {
-    padding: 12px 16px; text-align: center; background-color: var(--tg-theme-bg-color);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08); position: relative; z-index: 10;
+#app-container {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
 }
-header h1 { margin: 0; font-size: 17px; font-weight: 600; }
-main { overflow-y: auto; flex-grow: 1; }
-.screen { display: none; height: 100%; flex-direction: column; }
-.screen.active { display: flex; }
-.hidden { display: none !important; }
 
-/* ИЗМЕНЕНО: Возвращены стили для прошлой анимации */
-.loader-container {
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    height: 100%; color: var(--tg-theme-hint-color);
+/* --- Загрузчик --- */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-.padel-loader {
-    width: 50px; height: 50px; border: 5px solid var(--tg-theme-button-color);
-    border-radius: 50%; border-left-color: transparent; border-right-color: transparent;
-    animation: spin 1s linear infinite; margin-bottom: 16px;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* Экран выбора локаций */
-.location-list { padding: 16px; display: grid; gap: 12px; }
-.location-card {
-    background: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 16px;
-    cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+.padel-ball {
+    width: 50px;
+    height: 50px;
+    background-color: #dfff00; /* Ярко-желтый */
+    border-radius: 50%;
+    position: relative;
+    animation: spin 1s linear infinite;
 }
-.location-card:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-.location-card h2 { margin: 0 0 4px; font-size: 18px; }
-.location-card p { margin: 0; font-size: 15px; color: var(--tg-theme-hint-color); }
 
-/* Календарь */
-.calendar-main-container { padding: 0 8px; }
-.two-month-container { display: flex; flex-direction: column; gap: 16px; }
-.calendar-instance { background: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 12px; }
-.calendar-header { padding: 4px 4px 8px; }
-.calendar-header h2 { margin: 0; font-size: 18px; font-weight: 600; text-align: center; }
-.weekdays-grid, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 4px; }
-.weekdays-grid div { font-size: 13px; font-weight: 500; color: var(--tg-theme-hint-color); padding: 8px 0; }
+.padel-ball::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    border: 2px solid var(--tg-theme-text-color);
+    border-radius: 50%;
+    border-left-color: transparent;
+    border-right-color: transparent;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- Выбор локации --- */
+#location-selector h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.location-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    transition: opacity 0.2s;
+}
+
+.location-btn:hover {
+    opacity: 0.9;
+}
+
+
+/* --- Календарь --- */
+#calendar-container {
+    display: none;
+}
+
+.month-header {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: left;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: var(--tg-theme-hint-color);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
 .calendar-day {
-    font-size: 16px; height: 42px; display: flex; justify-content: center;
-    align-items: center; position: relative; border-radius: 50%;
-    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 14px;
+    position: relative;
+    transition: background-color 0.2s;
 }
-.calendar-day.is-active { cursor: pointer; }
-.calendar-day.is-active:active span { transform: scale(0.9); }
-.calendar-day.is-disabled { color: #c7c7cc; cursor: default !important; opacity: 0.5; }
-.calendar-day.is-placeholder { opacity: 0; }
-.calendar-day.is-today span {
-    background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);
-    border-radius: 50%; width: 32px; height: 32px; line-height: 32px;
-}
-.calendar-day.has-sessions::after {
-    content: ''; position: absolute; bottom: 5px; left: 50%;
-    transform: translateX(-50%); width: 5px; height: 5px;
-    background-color: var(--tg-theme-button-color); border-radius: 50%;
-}
-.calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color, #fff); }
 
-/* Модальное окно */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4);
-    display: flex; justify-content: center; align-items: flex-end;
-    opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000;
+.calendar-day.past {
+    color: var(--tg-theme-hint-color);
+    opacity: 0.6;
 }
-.modal-overlay.visible { opacity: 1; visibility: visible; }
+
+.calendar-day.available {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.calendar-day.available:hover {
+    background-color: var(--tg-theme-secondary-bg-color);
+}
+
+/* Та самая лаконичная точка */
+.calendar-day.available::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--tg-theme-link-color);
+}
+
+
+/* --- Модальное окно --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+}
+
 .modal-content {
-    background: #f0f3f8; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px;
-    transform: translateY(100%); transition: transform 0.3s ease-out;
-    max-height: 80vh; display: flex; flex-direction: column;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    margin: 40% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 85%;
+    max-width: 400px;
+    border-radius: 12px;
+    position: relative;
 }
-.modal-overlay.visible .modal-content { transform: translateY(0); }
-.modal-header { padding: 16px; text-align: center; position: relative; }
-.modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
+
+.modal-content h4 {
+    margin-top: 0;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-content li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tg-theme-hint-color);
+}
+.modal-content li:last-child {
+    border-bottom: none;
+}
+
 .close-button {
-    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-    font-size: 24px; color: #8e8e93; background: none; border: none; cursor: pointer;
+    color: var(--tg-theme-hint-color);
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
 }
-.modal-body { padding: 0; overflow-y: auto; background-color: white; }
-.modal-body .list-item { padding: 14px 16px; border-bottom: 0.5px solid #c6c6c8; }
-.modal-body .list-item-title { font-size: 17px; }
-.modal-body .list-item-subtitle { font-size: 15px; color: #6d6d72; }
-.modal-footer { padding: 16px; border-top: 0.5px solid #c6c6c8; }
-.action-button {
-    background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);
-    border: none; border-radius: 12px; padding: 14px 20px; font-size: 17px;
-    font-weight: 600; cursor: pointer; width: 100%;
+
+.subscribe-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
 }

@@ -1,8 +1,6 @@
 // webapp/script.js
 const API_BASE_URL = "https://curly-birds-matter.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
-// webapp/script.js
-const API_BASE_URL = "https://ВАШ_АДРЕС.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;

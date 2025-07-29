@@ -5,48 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Padel Bot</title>
     <!-- Версия обновлена для сброса кэша -->
-    <link rel="stylesheet" href="style.css?v=1.3.0">
+    <link rel="stylesheet" href="style.css?v=1.4.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Экран 1: Выбор локации -->
         <div id="location-screen" class="screen active">
-            <header>
-                <h1>Выберите клуб</h1>
-            </header>
-            <main>
-                <div id="location-list" class="location-list"></div>
-            </main>
+            <header><h1>Выберите клуб</h1></header>
+            <main><div id="location-list" class="location-list"></div></main>
         </div>
 
         <!-- Экран 2: Календарь -->
         <div id="calendar-screen" class="screen">
-            <header>
-                <h1 id="calendar-location-header"></h1>
-            </header>
+            <header><h1 id="calendar-location-header"></h1></header>
             <main class="calendar-main-container">
-                <!-- ИЗМЕНЕНО: Единый контейнер для всего календаря -->
-                <div id="calendar-container"></div>
+                <!-- ИЗМЕНЕНО: Добавлен контейнер для лоадера -->
+                <div id="loader-container" class="loader-container">
+                    <div class="padel-loader"></div>
+                    <p>Ищем свободные корты...</p>
+                </div>
+                <div id="calendar-wrapper" class="hidden">
+                    <div class="two-month-container">
+                        <div class="calendar-instance">
+                            <div class="calendar-header"><h2 id="month-year-header-current"></h2></div>
+                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div id="calendar-grid-current" class="calendar-grid"></div>
+                        </div>
+                        <div class="calendar-instance">
+                            <div class="calendar-header"><h2 id="month-year-header-next"></h2></div>
+                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div id="calendar-grid-next" class="calendar-grid"></div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
 
-    <!-- Модальное окно для деталей по дню -->
+    <!-- Модальное окно -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-date-header"></h3>
-                <button id="close-modal-btn" class="close-button">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="modal-date-header"></h3><button id="close-modal-btn" class="close-button">&times;</button></div>
             <div id="modal-sessions-list" class="modal-body"></div>
-            <div class="modal-footer">
-                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
-            </div>
+            <div class="modal-footer"><button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button></div>
         </div>
     </div>
 
-    <!-- Версия обновлена для сброса кэша -->
-    <script src="script.js?v=1.3.0"></script>
+    <!-- Версия обновлена -->
+    <script src="script.js?v=1.4.0"></script>
 </body>
 </html>

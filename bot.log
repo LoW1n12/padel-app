@@ -938,3 +938,22 @@ AttributeError: module 'config' has no attribute 'MINI_APP_URL'
 2025-07-29 03:15:49,078 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-07-29 03:15:59,123 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-07-29 03:16:09,165 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:16:12,330 - __main__ - INFO - Бот запускается...
+2025-07-29 03:16:12,467 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getMe "HTTP/1.1 200 OK"
+2025-07-29 03:16:12,468 - bot - INFO - --- Запуск post_init хука ---
+2025-07-29 03:16:12,468 - database - INFO - База данных успешно инициализирована.
+2025-07-29 03:16:12,468 - monitoring - INFO - --- Задача мониторинга запущена ---
+2025-07-29 03:16:12,468 - bot - INFO - --- Веб-сервер для API успешно запущен на порту 8080 ---
+2025-07-29 03:16:12,513 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-29 03:16:12,513 - telegram.ext.Application - INFO - Application started
+2025-07-29 03:16:22,646 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:16:32,689 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:16:42,734 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:16:52,779 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:02,828 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:12,874 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:22,922 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:32,965 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:43,011 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:17:53,059 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:18:03,103 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"

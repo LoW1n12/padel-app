@@ -2,44 +2,57 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бронирование Падел</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Padel Bot</title>
+    <!-- Версия обновлена для сброса кэша -->
+    <link rel="stylesheet" href="style.css?v=1.6.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-
-    <div id="app-container">
-        <!-- Экран выбора локации -->
-        <div id="location-selector">
-            <h2>Выберите локацию</h2>
-            <button class="location-btn" data-location="dynamo">Динамо</button>
-            <button class="location-btn" data-location="fili">Фили</button>
+    <div class="app-container">
+        <!-- Экран 1: Выбор локации -->
+        <div id="location-screen" class="screen active">
+            <header><h1>Выберите клуб</h1></header>
+            <main><div id="location-list" class="location-list"></div></main>
         </div>
 
-        <!-- Экран календаря -->
-        <div id="calendar-container">
-            <div id="calendar">
-                <!-- Календарь будет сгенерирован здесь -->
-            </div>
+        <!-- Экран 2: Календарь -->
+        <div id="calendar-screen" class="screen">
+            <header><h1 id="calendar-location-header"></h1></header>
+            <main class="calendar-main-container">
+                <div id="loader-container" class="loader-container">
+                    <!-- ИЗМЕНЕНО: Возвращена прошлая анимация загрузки -->
+                    <div class="padel-loader"></div>
+                    <p>Ищем свободные корты...</p>
+                </div>
+                <div id="calendar-wrapper" class="hidden">
+                    <div class="two-month-container">
+                        <div class="calendar-instance">
+                            <div class="calendar-header"><h2 id="month-year-header-current"></h2></div>
+                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div id="calendar-grid-current" class="calendar-grid"></div>
+                        </div>
+                        <div class="calendar-instance">
+                            <div class="calendar-header"><h2 id="month-year-header-next"></h2></div>
+                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div id="calendar-grid-next" class="calendar-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Модальное окно для деталей -->
-    <div id="details-modal" class="modal">
+    <!-- Модальное окно -->
+    <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="modal-details-content">
-                <!-- Детали по слотам будут загружены сюда -->
-            </div>
+            <div class="modal-header"><h3 id="modal-date-header"></h3><button id="close-modal-btn" class="close-button">&times;</button></div>
+            <div id="modal-sessions-list" class="modal-body"></div>
+            <div class="modal-footer"><button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button></div>
         </div>
     </div>
 
-    <!-- Загрузчик -->
-    <div id="loader" style="display: none;">
-        <div class="padel-ball"></div>
-    </div>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="script.js"></script>
+    <!-- Версия обновлена -->
+    <script src="script.js?v=1.6.0"></script>
 </body>
 </html>

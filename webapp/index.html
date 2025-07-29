@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Padel Bot</title>
     <!-- Версия обновлена для сброса кэша -->
-    <link rel="stylesheet" href="style.css?v=1.5.0">
+    <link rel="stylesheet" href="style.css?v=1.6.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -21,14 +21,8 @@
             <header><h1 id="calendar-location-header"></h1></header>
             <main class="calendar-main-container">
                 <div id="loader-container" class="loader-container">
-                    <!-- ИЗМЕНЕНО: Новый SVG лоадер -->
-                    <div class="padel-loader">
-                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="50" cy="35" r="30" stroke-width="6" stroke="var(--tg-theme-button-color)" fill="none" stroke-linecap="round"/>
-                            <path d="M 50 65 L 50 95" stroke-width="8" stroke="var(--tg-theme-button-color)" stroke-linecap="round"/>
-                            <path d="M 40 85 L 60 85" stroke-width="8" stroke="var(--tg-theme-button-color)" stroke-linecap="round"/>
-                        </svg>
-                    </div>
+                    <!-- ИЗМЕНЕНО: Возвращена прошлая анимация загрузки -->
+                    <div class="padel-loader"></div>
                     <p>Ищем свободные корты...</p>
                 </div>
                 <div id="calendar-wrapper" class="hidden">
@@ -59,6 +53,6 @@
     </div>
 
     <!-- Версия обновлена -->
-    <script src="script.js?v=1.5.0"></script>
+    <script src="script.js?v=1.6.0"></script>
 </body>
 </html>

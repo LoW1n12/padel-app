@@ -2,6 +2,7 @@
 const API_BASE_URL = "https://curly-birds-matter.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
@@ -83,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next, false);
     }
 
-    // ИЗМЕНЕНО: Полностью переписанная, более надежная логика отрисовки
+    // ИЗМЕНЕНО: Полностью переписанная, максимально простая и надежная логика отрисовки
     function renderCalendar(date, gridElement, headerElement, isCurrentMonth) {
         gridElement.innerHTML = '';
         const year = date.getFullYear();
@@ -93,25 +94,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
 
-        let firstDay = new Date(year, month, 1).getDay();
-        if (firstDay === 0) firstDay = 7;
+        // Определяем, с какого дня начинать рендеринг
+        const startDay = isCurrentMonth ? today.getDate() : 1;
+
+        // Определяем день недели для первого отображаемого дня
+        const firstRenderedDay = new Date(year, month, startDay);
+        let dayOfWeek = firstRenderedDay.getDay();
+        if (dayOfWeek === 0) dayOfWeek = 7; // Делаем Пн=1, Вс=7
 
         // Добавляем пустые ячейки для дней недели до 1-го числа
-        for (let i = 1; i < firstDay; i++) {
-            gridElement.appendChild(document.createElement('div'));
+        for (let i = 1; i < dayOfWeek; i++) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'calendar-day is-placeholder';
+            gridElement.appendChild(placeholder);
         }
 
-        for (let day = 1; day <= daysInMonth; day++) {
-            const currentDate = new Date(year, month, day);
-
-            // Если это текущий месяц, и день уже прошел - рисуем пустую ячейку
-            if (isCurrentMonth && currentDate < today.setHours(0,0,0,0)) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'calendar-day is-placeholder';
-                gridElement.appendChild(placeholder);
-                continue;
-            }
-
+        for (let day = startDay; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-day';
 

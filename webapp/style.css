@@ -65,8 +65,8 @@ main { overflow-y: auto; flex-grow: 1; }
 }
 .calendar-day.is-active { cursor: pointer; }
 .calendar-day.is-active:active span { transform: scale(0.9); }
-.calendar-day.is-disabled { color: #c7c7cc; cursor: default !important; opacity: 0.5; }
-.calendar-day.is-placeholder { opacity: 0; }
+.calendar-day.is-disabled { color: #c7c7cc; cursor: default !important; }
+.calendar-day.is-placeholder { visibility: hidden; }
 .calendar-day.is-today span {
     background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);
     border-radius: 50%; width: 32px; height: 32px; line-height: 32px;

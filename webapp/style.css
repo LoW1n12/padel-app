@@ -27,16 +27,16 @@ main { overflow-y: auto; flex-grow: 1; }
 .screen.active { display: flex; }
 .hidden { display: none !important; }
 
-/* ИЗМЕНЕНО: Стили для лоадера */
+/* ИЗМЕНЕНО: Стили для нового SVG лоадера */
 .loader-container {
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     height: 100%; color: var(--tg-theme-hint-color);
 }
 .padel-loader {
-    width: 50px; height: 50px; border: 5px solid var(--tg-theme-button-color);
-    border-radius: 50%; border-left-color: transparent; border-right-color: transparent;
-    animation: spin 1s linear infinite; margin-bottom: 16px;
+    width: 60px; height: 60px;
+    animation: spin 1.5s linear infinite; margin-bottom: 16px;
 }
+.padel-loader svg { width: 100%; height: 100%; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* Экран выбора локаций */
@@ -61,10 +61,10 @@ main { overflow-y: auto; flex-grow: 1; }
 .calendar-day {
     font-size: 16px; height: 42px; display: flex; justify-content: center;
     align-items: center; position: relative; border-radius: 50%;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
 }
 .calendar-day.is-active { cursor: pointer; }
-.calendar-day.is-active:active span { transform: scale(0.9); transition: transform 0.1s; }
+.calendar-day.is-active:active span { transform: scale(0.9); }
 .calendar-day.is-disabled { color: #c7c7cc; cursor: default !important; }
 .calendar-day.is-today span {
     background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);

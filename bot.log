@@ -1024,3 +1024,5 @@ AttributeError: module 'config' has no attribute 'MINI_APP_URL'
 2025-07-29 03:25:50,007 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-07-29 03:26:00,052 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-07-29 03:26:10,099 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:26:20,142 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-07-29 03:26:30,185 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"

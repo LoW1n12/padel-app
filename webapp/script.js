@@ -11,10 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
     // UI Элементы
-    const screens = {
-        location: document.getElementById('location-screen'),
-        calendar: document.getElementById('calendar-screen'),
-    };
+    const screens = { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen'), };
     const modal = {
         overlay: document.getElementById('detail-modal'), dateHeader: document.getElementById('modal-date-header'),
         sessionsList: document.getElementById('modal-sessions-list'), closeBtn: document.getElementById('close-modal-btn'),
@@ -23,14 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const locationList = document.getElementById('location-list');
     const calendarWrapper = document.getElementById('calendar-wrapper');
     const loaderContainer = document.getElementById('loader-container');
-    const calendarGrids = {
-        current: document.getElementById('calendar-grid-current'),
-        next: document.getElementById('calendar-grid-next')
-    };
-    const monthYearHeaders = {
-        current: document.getElementById('month-year-header-current'),
-        next: document.getElementById('month-year-header-next')
-    };
+    const calendarGrids = { current: document.getElementById('calendar-grid-current'), next: document.getElementById('calendar-grid-next') };
+    const monthYearHeaders = { current: document.getElementById('month-year-header-current'), next: document.getElementById('month-year-header-next') };
 
     // Состояние приложения
     let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null, };
@@ -62,8 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
             state.availableDates = new Set(data.available_dates);
-            // Добавлена отладочная информация в консоль
-            console.log("Свободные даты получены:", state.availableDates);
+            console.log("Свободные даты получены:", Array.from(state.availableDates)); // Для отладки
             renderTwoMonthCalendar();
         } catch (error) {
             console.error('Ошибка загрузки данных для календаря:', error);
@@ -109,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstDayOfMonth = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
+        const todayDate = today.getDate();
+        const todayMonth = today.getMonth();
+        const todayYear = today.getFullYear();
 
         let dayOfWeek = firstDayOfMonth.getDay();
         if (dayOfWeek === 0) dayOfWeek = 7;
@@ -123,42 +116,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentDate = new Date(year, month, day);
 
             // Проверяем, не является ли день прошедшим
-            if (currentDate < today.setHours(0,0,0,0)) {
-                dayCell.classList.add('is-disabled');
+            if (year < todayYear || (year === todayYear && month < todayMonth) || (year === todayYear && month === todayMonth && day < todayDate)) {
+                 dayCell.classList.add('is-disabled');
             } else {
-                 dayCell.classList.add('is-active');
-            }
+                const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-            const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (state.availableDates.has(fullDateStr)) {
+                    dayCell.classList.add('is-active', 'has-sessions');
+                    dayCell.addEventListener('click', () => onDateClick(fullDateStr));
+                } else {
+                     dayCell.classList.add('is-disabled');
+                }
+            }
 
             const span = document.createElement('span');
             span.textContent = day;
             dayCell.appendChild(span);
 
-            if (day === today.getDate() && year === today.getFullYear() && month === today.getMonth()) {
+            if (day === todayDate && month === todayMonth && year === todayYear) {
                 dayCell.classList.add('is-today');
             }
 
-            if (state.availableDates.has(fullDateStr)) {
-                dayCell.classList.add('has-sessions');
-                dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            } else {
-                // Если нет сессий, день не должен быть кликабельным
-                if (!dayCell.classList.contains('is-disabled')) {
-                    dayCell.classList.add('is-disabled');
-                }
-            }
             gridElement.appendChild(dayCell);
         }
     }
 
     async function onDateClick(dateStr) {
-        if (!state.availableDates.has(dateStr)) return;
+        // ... (код функции без изменений) ...
         state.selectedDateForModal = dateStr;
         modal.dateHeader.textContent = new Date(dateStr).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
         modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Загрузка...</div>';
         modal.overlay.classList.add('visible');
-
         try {
             const data = await fetchAPI(`/api/sessions?location=${encodeURIComponent(state.selectedLocation)}&date=${dateStr}`);
             renderModalSessions(data);
@@ -168,11 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderModalSessions(data) {
+        // ... (код функции без изменений) ...
         modal.sessionsList.innerHTML = '';
         const sortedTimes = Object.keys(data).sort();
         if (sortedTimes.length === 0) {
-            modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>';
-            return;
+            modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>'; return;
         }
         const listWrapper = document.createElement('div');
         listWrapper.style.padding = '0 16px 16px';
@@ -194,8 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeModal() { modal.overlay.classList.remove('visible'); }
 
     async function onConfirmNotification() {
+        // ... (код функции без изменений) ...
         tg.MainButton.showProgress();
-        // ... (остальной код функции без изменений)
         const subscription = {
             location: state.selectedLocation, hour: -1,
             court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],

@@ -1,6 +1,9 @@
 // webapp/script.js
 const API_BASE_URL = "https://curly-birds-matter.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
+// webapp/script.js
+const API_BASE_URL = "https://ВАШ_АДРЕС.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
+
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
@@ -15,21 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
         calendar: document.getElementById('calendar-screen'),
     };
     const modal = {
-        overlay: document.getElementById('detail-modal'),
-        dateHeader: document.getElementById('modal-date-header'),
-        sessionsList: document.getElementById('modal-sessions-list'),
-        closeBtn: document.getElementById('close-modal-btn'),
+        overlay: document.getElementById('detail-modal'), dateHeader: document.getElementById('modal-date-header'),
+        sessionsList: document.getElementById('modal-sessions-list'), closeBtn: document.getElementById('close-modal-btn'),
         notifyBtn: document.getElementById('add-notification-btn'),
     };
     const locationList = document.getElementById('location-list');
-    const calendarContainer = document.getElementById('calendar-container');
+    const calendarWrapper = document.getElementById('calendar-wrapper');
+    const loaderContainer = document.getElementById('loader-container');
+    const calendarGrids = {
+        current: document.getElementById('calendar-grid-current'),
+        next: document.getElementById('calendar-grid-next')
+    };
+    const monthYearHeaders = {
+        current: document.getElementById('month-year-header-current'),
+        next: document.getElementById('month-year-header-next')
+    };
 
     // Состояние приложения
-    let state = {
-        selectedLocation: null,
-        availableDates: new Set(),
-        selectedDateForModal: null,
-    };
+    let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null, };
 
     function showScreen(screenName) {
         Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -53,12 +59,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchCalendarDataAndRender() {
         if (!state.selectedLocation) return;
-        calendarContainer.innerHTML = 'Загрузка календаря...';
+        loaderContainer.classList.remove('hidden');
+        calendarWrapper.classList.add('hidden');
         try {
             const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
             state.availableDates = new Set(data.available_dates);
-            renderRollingCalendar(40); // Отображаем 40 дней
-        } catch (error) { console.error('Ошибка загрузки данных для календаря:', error); }
+            // Добавлена отладочная информация в консоль
+            console.log("Свободные даты получены:", state.availableDates);
+            renderTwoMonthCalendar();
+        } catch (error) {
+            console.error('Ошибка загрузки данных для календаря:', error);
+        } finally {
+            loaderContainer.classList.add('hidden');
+            calendarWrapper.classList.remove('hidden');
+        }
     }
 
     function renderLocations(locations) {
@@ -78,63 +92,70 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderRollingCalendar(daysToShow) {
-        calendarContainer.innerHTML = '';
-        let currentMonth = -1;
+    function renderTwoMonthCalendar() {
+        const now = new Date();
+        const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-        for (let i = 0; i < daysToShow; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() + i);
+        renderCalendar(currentMonthDate, calendarGrids.current, monthYearHeaders.current);
+        renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next);
+    }
 
-            // Если начинается новый месяц, добавляем заголовок
-            if (date.getMonth() !== currentMonth) {
-                currentMonth = date.getMonth();
-                const monthHeader = document.createElement('div');
-                monthHeader.className = 'month-header';
-                monthHeader.innerHTML = `<h2>${date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
-                calendarContainer.appendChild(monthHeader);
+    // ИЗМЕНЕНО: Полностью переписанная, более надежная логика отрисовки
+    function renderCalendar(date, gridElement, headerElement) {
+        gridElement.innerHTML = '';
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        headerElement.textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
 
-                const weekdaysGrid = document.createElement('div');
-                weekdaysGrid.className = 'weekdays-grid';
-                weekdaysGrid.innerHTML = '<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>';
-                calendarContainer.appendChild(weekdaysGrid);
+        const firstDayOfMonth = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
 
-                const grid = document.createElement('div');
-                grid.className = 'calendar-grid';
-                calendarContainer.appendChild(grid);
+        let dayOfWeek = firstDayOfMonth.getDay();
+        if (dayOfWeek === 0) dayOfWeek = 7;
 
-                // Добавляем пустые ячейки для дней недели до 1-го числа
-                let dayOfWeek = date.getDay();
-                if (dayOfWeek === 0) dayOfWeek = 7;
-                for (let j = 1; j < dayOfWeek; j++) {
-                    grid.appendChild(document.createElement('div'));
-                }
-            }
+        for (let i = 1; i < dayOfWeek; i++) {
+            gridElement.appendChild(document.createElement('div'));
+        }
 
-            const grid = calendarContainer.querySelector('.calendar-grid:last-child');
+        for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-day';
-            const fullDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const currentDate = new Date(year, month, day);
+
+            // Проверяем, не является ли день прошедшим
+            if (currentDate < today.setHours(0,0,0,0)) {
+                dayCell.classList.add('is-disabled');
+            } else {
+                 dayCell.classList.add('is-active');
+            }
+
+            const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
             const span = document.createElement('span');
-            span.textContent = date.getDate();
+            span.textContent = day;
             dayCell.appendChild(span);
 
-            if (i === 0) { // Сегодня
+            if (day === today.getDate() && year === today.getFullYear() && month === today.getMonth()) {
                 dayCell.classList.add('is-today');
             }
 
             if (state.availableDates.has(fullDateStr)) {
-                dayCell.classList.add('has-sessions', 'is-active');
+                dayCell.classList.add('has-sessions');
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
             } else {
-                dayCell.classList.add('is-disabled');
+                // Если нет сессий, день не должен быть кликабельным
+                if (!dayCell.classList.contains('is-disabled')) {
+                    dayCell.classList.add('is-disabled');
+                }
             }
-            grid.appendChild(dayCell);
+            gridElement.appendChild(dayCell);
         }
     }
 
     async function onDateClick(dateStr) {
+        if (!state.availableDates.has(dateStr)) return;
         state.selectedDateForModal = dateStr;
         modal.dateHeader.textContent = new Date(dateStr).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
         modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Загрузка...</div>';
@@ -158,8 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const listWrapper = document.createElement('div');
         listWrapper.style.padding = '0 16px 16px';
         const list = document.createElement('div');
-        list.style.borderRadius = '12px';
-        list.style.overflow = 'hidden';
+        list.style.borderRadius = '12px'; list.style.overflow = 'hidden';
 
         sortedTimes.forEach(time => {
             const courtData = data[time];
@@ -173,12 +193,11 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.sessionsList.appendChild(listWrapper);
     }
 
-    function closeModal() {
-        modal.overlay.classList.remove('visible');
-    }
+    function closeModal() { modal.overlay.classList.remove('visible'); }
 
     async function onConfirmNotification() {
         tg.MainButton.showProgress();
+        // ... (остальной код функции без изменений)
         const subscription = {
             location: state.selectedLocation, hour: -1,
             court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],
@@ -195,10 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             tg.showAlert('Не удалось добавить уведомление.');
         } finally {
-            tg.MainButton.hideProgress();
-            tg.MainButton.hide();
-            tg.MainButton.offClick(onConfirmNotification);
-            closeModal();
+            tg.MainButton.hideProgress(); tg.MainButton.hide();
+            tg.MainButton.offClick(onConfirmNotification); closeModal();
         }
     }
 

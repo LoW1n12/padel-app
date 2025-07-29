@@ -1,6 +1,5 @@
 // webapp/script.js
-const API_BASE_URL = "https://curly-birds-matter.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
-
+const API_BASE_URL = "https://moody-turtles-carry.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,27 +102,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dayOfWeek === 0) dayOfWeek = 7; // Делаем Пн=1, Вс=7
 
         // Добавляем пустые ячейки для дней недели до 1-го числа
-        for (let i = 1; i < dayOfWeek; i++) {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'calendar-day is-placeholder';
-            gridElement.appendChild(placeholder);
+        if(isCurrentMonth) {
+            for (let i = 1; i < dayOfWeek; i++) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'calendar-day is-placeholder';
+                gridElement.appendChild(placeholder);
+            }
+        } else {
+            let firstDayOfNextMonth = new Date(year, month, 1).getDay();
+            if (firstDayOfNextMonth === 0) firstDayOfNextMonth = 7;
+            for (let i = 1; i < firstDayOfNextMonth; i++) {
+                gridElement.appendChild(document.createElement('div'));
+            }
         }
 
         for (let day = startDay; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day';
+            dayCell.className = 'calendar-day is-future'; // Помечаем как будущий день по умолчанию
 
             const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-            // Проверяем, есть ли сессии в этот день
             const hasSessions = state.availableDates.has(fullDateStr);
             console.log(`[LOG] Проверка даты: ${fullDateStr}. Есть сессии: ${hasSessions}`);
 
             if (hasSessions) {
-                dayCell.classList.add('is-active', 'has-sessions');
+                dayCell.classList.add('has-sessions');
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            } else {
-                dayCell.classList.add('is-disabled');
             }
 
             const span = document.createElement('span');

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Padel Bot</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- ИЗМЕНЕНО: Добавлена версия '?v=1.2.0' к файлам. При следующем обновлении измените на 1.2.1 -->
+    <link rel="stylesheet" href="style.css?v=1.2.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -26,16 +27,27 @@
             <header>
                 <h1 id="calendar-location-header"></h1>
             </header>
-            <main class="calendar-container">
-                <div class="calendar-header">
-                    <button id="prev-month-btn" class="month-nav-btn">&lt;</button>
-                    <h2 id="month-year-header"></h2>
-                    <button id="next-month-btn" class="month-nav-btn">&gt;</button>
+            <main class="calendar-main-container">
+                <div class="two-month-container">
+                    <div class="calendar-instance">
+                        <div class="calendar-header">
+                            <h2 id="month-year-header-current"></h2>
+                        </div>
+                        <div class="weekdays-grid">
+                            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                        </div>
+                        <div id="calendar-grid-current" class="calendar-grid"></div>
+                    </div>
+                    <div class="calendar-instance">
+                        <div class="calendar-header">
+                            <h2 id="month-year-header-next"></h2>
+                        </div>
+                        <div class="weekdays-grid">
+                            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                        </div>
+                        <div id="calendar-grid-next" class="calendar-grid"></div>
+                    </div>
                 </div>
-                <div class="weekdays-grid">
-                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-                </div>
-                <div id="calendar-grid" class="calendar-grid"></div>
             </main>
         </div>
     </div>
@@ -54,6 +66,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- ИЗМЕНЕНО: Добавлена версия '?v=1.2.0' к файлу скрипта -->
+    <script src="script.js?v=1.2.0"></script>
 </body>
 </html>

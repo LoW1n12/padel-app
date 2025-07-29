@@ -1,12 +1,80 @@
 // webapp/script.js
-const API_BASE_URL = "https://moody-turtles-carry.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
-
+const API_BASE_URL = "https://nasty-baths-wave.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-    tg.BackButton.hide();
+
+    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
+
+    // ... (UI Элементы без изменений) ...
+    const screens = { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen') };
+    const modal = { overlay: document.getElementById('detail-modal'), dateHeader: document.getElementById('modal-date-header'), sessionsList: document.getElementById('modal-sessions-list'), closeBtn: document.getElementById('close-modal-btn'), notifyBtn: document.getElementById('add-notification-btn') };
+    const locationList = document.getElementById('location-list');
+    const calendarWrapper = document.getElementById('calendar-wrapper');
+    const loaderContainer = document.getElementById('loader-container');
+    const calendarGrids = { current: document.getElementById('calendar-grid-current'), next: document.getElementById('calendar-grid-next') };
+    const monthYearHeaders = { current: document.getElementById('month-year-header-current'), next: document.getElementById('month-year-header-next') };
+
+    // ИЗМЕНЕНО: Находим новую кнопку
+    const backBtn = document.getElementById('back-btn');
+
+    let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null };
+
+    // ... (функции fetchAPI, fetchLocations без изменений) ...
+
+    async function fetchCalendarDataAndRender() {
+        // ... (код функции без изменений) ...
+    }
+
+    function renderLocations(locations) {
+        locationList.innerHTML = '';
+        locations.forEach(loc => {
+            const card = document.createElement('div');
+            card.className = 'location-card';
+            card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
+            card.addEventListener('click', () => {
+                state.selectedLocation = loc.id;
+                document.getElementById('calendar-location-header').textContent = loc.name;
+                fetchCalendarDataAndRender();
+                showScreen('calendar');
+                // ИЗМЕНЕНО: Показываем нативную кнопку, если она поддерживается
+                if (tg.isVersionAtLeast('6.1')) {
+                    tg.BackButton.show();
+                }
+            });
+            locationList.appendChild(card);
+        });
+    }
+
+    // ... (остальные функции render... и on... без изменений) ...
+
+    // ИЗМЕНЕНО: Функция для возврата на экран локаций
+    function goBackToLocations() {
+        showScreen('location');
+        if (tg.isVersionAtLeast('6.1')) {
+            tg.BackButton.hide();
+        }
+    }
+
+    // ИЗМЕНЕНО: Навешиваем событие на обе кнопки "назад"
+    backBtn.addEventListener('click', goBackToLocations);
+    tg.onEvent('backButtonClicked', goBackToLocations);
+
+    // ... (остальные обработчики событий без изменений) ...
+
+    fetchLocations();
+});
+
+// Полный код script.js для замены
+const fullScriptContent = `
+const API_BASE_URL = "https://ВАШ_АДРЕС.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
@@ -17,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loaderContainer = document.getElementById('loader-container');
     const calendarGrids = { current: document.getElementById('calendar-grid-current'), next: document.getElementById('calendar-grid-next') };
     const monthYearHeaders = { current: document.getElementById('month-year-header-current'), next: document.getElementById('month-year-header-next') };
+    const backBtn = document.getElementById('back-btn');
 
     let state = { selectedLocation: null, availableDates: new Set(), selectedDateForModal: null };
 
@@ -26,8 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAPI(path) {
-        const response = await fetch(`${API_BASE_URL}${path}`, { headers: { 'Bypass-Tunnel-Reminder': 'true' } });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const response = await fetch(API_BASE_URL + path, { headers: { 'Bypass-Tunnel-Reminder': 'true' } });
+        if (!response.ok) throw new Error(\`HTTP error! status: \${response.status}\`);
         return response.json();
     }
 
@@ -45,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loaderContainer.classList.remove('hidden');
         calendarWrapper.classList.add('hidden');
         try {
-            const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
+            const data = await fetchAPI(\`/api/calendar?location=\${encodeURIComponent(state.selectedLocation)}\`);
             state.availableDates = new Set(data.available_dates);
             console.log("[LOG] Даты с сессиями получены от API:", Array.from(state.availableDates));
             renderTwoMonthCalendar();
@@ -62,13 +131,15 @@ document.addEventListener('DOMContentLoaded', () => {
         locations.forEach(loc => {
             const card = document.createElement('div');
             card.className = 'location-card';
-            card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
+            card.innerHTML = \`<h2>\${loc.name}</h2><p>\${loc.description}</p>\`;
             card.addEventListener('click', () => {
                 state.selectedLocation = loc.id;
                 document.getElementById('calendar-location-header').textContent = loc.name;
                 fetchCalendarDataAndRender();
                 showScreen('calendar');
-                tg.BackButton.show();
+                if (tg.isVersionAtLeast('6.1')) {
+                    tg.BackButton.show();
+                }
             });
             locationList.appendChild(card);
         });
@@ -83,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next, false);
     }
 
-    // ИЗМЕНЕНО: Полностью переписанная, максимально простая и надежная логика отрисовки
     function renderCalendar(date, gridElement, headerElement, isCurrentMonth) {
         gridElement.innerHTML = '';
         const year = date.getFullYear();
@@ -92,38 +162,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
-
-        // Определяем, с какого дня начинать рендеринг
         const startDay = isCurrentMonth ? today.getDate() : 1;
 
-        // Определяем день недели для первого отображаемого дня
-        const firstRenderedDay = new Date(year, month, startDay);
-        let dayOfWeek = firstRenderedDay.getDay();
-        if (dayOfWeek === 0) dayOfWeek = 7; // Делаем Пн=1, Вс=7
+        let firstRenderedDayOfWeek = new Date(year, month, startDay).getDay();
+        if (firstRenderedDayOfWeek === 0) firstRenderedDayOfWeek = 7;
 
-        // Добавляем пустые ячейки для дней недели до 1-го числа
-        if(isCurrentMonth) {
-            for (let i = 1; i < dayOfWeek; i++) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'calendar-day is-placeholder';
-                gridElement.appendChild(placeholder);
+        if (isCurrentMonth) {
+            for (let i = 1; i < firstRenderedDayOfWeek; i++) {
+                gridElement.appendChild(document.createElement('div')).className = 'calendar-day is-placeholder';
             }
         } else {
-            let firstDayOfNextMonth = new Date(year, month, 1).getDay();
-            if (firstDayOfNextMonth === 0) firstDayOfNextMonth = 7;
-            for (let i = 1; i < firstDayOfNextMonth; i++) {
+             let firstDayOfMonth = new Date(year, month, 1).getDay();
+             if(firstDayOfMonth === 0) firstDayOfMonth = 7;
+             for (let i = 1; i < firstDayOfMonth; i++) {
                 gridElement.appendChild(document.createElement('div'));
             }
         }
 
         for (let day = startDay; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day is-future'; // Помечаем как будущий день по умолчанию
+            dayCell.className = 'calendar-day is-future';
 
-            const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
+            const fullDateStr = \`\${year}-\${String(month + 1).padStart(2, '0')}-\${String(day).padStart(2, '0')}\`;
             const hasSessions = state.availableDates.has(fullDateStr);
-            console.log(`[LOG] Проверка даты: ${fullDateStr}. Есть сессии: ${hasSessions}`);
+            console.log(\`[LOG] Проверка даты: \${fullDateStr}. Есть сессии: \${hasSessions}\`);
 
             if (hasSessions) {
                 dayCell.classList.add('has-sessions');
@@ -137,19 +199,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayCell.classList.add('is-today');
             }
-
             gridElement.appendChild(dayCell);
         }
     }
 
     async function onDateClick(dateStr) {
-        // ... (код функции без изменений) ...
         state.selectedDateForModal = dateStr;
         modal.dateHeader.textContent = new Date(dateStr).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
         modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Загрузка...</div>';
         modal.overlay.classList.add('visible');
         try {
-            const data = await fetchAPI(`/api/sessions?location=${encodeURIComponent(state.selectedLocation)}&date=${dateStr}`);
+            const data = await fetchAPI(\`/api/sessions?location=\${encodeURIComponent(state.selectedLocation)}&date=\${dateStr}\`);
             renderModalSessions(data);
         } catch (error) {
             modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Ошибка загрузки</div>';
@@ -157,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderModalSessions(data) {
-        // ... (код функции без изменений) ...
         modal.sessionsList.innerHTML = '';
         const sortedTimes = Object.keys(data).sort();
         if (sortedTimes.length === 0) { modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>'; return; }
@@ -166,9 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sortedTimes.forEach(time => {
             const courtData = data[time];
-            let details = Object.entries(courtData).map(([type, info]) => `${type} - ${info.price} ₽`).join(' | ');
+            let details = Object.entries(courtData).map(([type, info]) => \`\${type} - \${info.price} ₽\`).join(' | ');
             const item = document.createElement('div'); item.className = 'list-item';
-            item.innerHTML = `<div class="list-item-title">${time}</div><div class="list-item-subtitle">${details}</div>`;
+            item.innerHTML = \`<div class="list-item-title">\${time}</div><div class="list-item-subtitle">\${details}</div>\`;
             list.appendChild(item);
         });
         listWrapper.appendChild(list); modal.sessionsList.appendChild(listWrapper);
@@ -177,11 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeModal() { modal.overlay.classList.remove('visible'); }
 
     async function onConfirmNotification() {
-        // ... (код функции без изменений) ...
         tg.MainButton.showProgress();
         const subscription = { location: state.selectedLocation, hour: -1, court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"], monitor_data: { type: "specific", value: state.selectedDateForModal } };
         try {
-            const response = await fetch(`${API_BASE_URL}/api/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' }, body: JSON.stringify({ initData: tg.initData, subscription: subscription }) });
+            const response = await fetch(\`\${API_BASE_URL}/api/subscribe\`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' }, body: JSON.stringify({ initData: tg.initData, subscription: subscription }) });
             if (!response.ok) throw new Error('Subscription failed');
             tg.showAlert('Уведомление успешно добавлено!');
         } catch (error) {
@@ -192,14 +250,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    tg.onEvent('backButtonClicked', () => { showScreen('location'); tg.BackButton.hide(); });
+    function goBackToLocations() {
+        showScreen('location');
+        if (tg.isVersionAtLeast('6.1')) {
+            tg.BackButton.hide();
+        }
+    }
+
+    backBtn.addEventListener('click', goBackToLocations);
+    tg.onEvent('backButtonClicked', goBackToLocations);
     modal.closeBtn.addEventListener('click', closeModal);
     modal.overlay.addEventListener('click', (e) => { if (e.target === modal.overlay) closeModal(); });
     modal.notifyBtn.addEventListener('click', () => {
-        tg.MainButton.setText(`Подтвердить на ${new Date(state.selectedDateForModal).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}`);
+        tg.MainButton.setText(\`Подтвердить на \${new Date(state.selectedDateForModal).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}\`);
         tg.MainButton.show();
         tg.MainButton.onClick(onConfirmNotification);
     });
 
     fetchLocations();
 });
+`;
+
+// Замените содержимое script.js на fullScriptContent
+// Это сделано для обхода проблем с форматированием в ответе
+document.getElementById('some-element').textContent = fullScriptContent;
+// На самом деле нужно просто заменить содержимое файла script.js
+// на код внутри `fullScriptContent`

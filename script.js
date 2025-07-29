@@ -1,5 +1,5 @@
 // webapp/script.js
-const API_BASE_URL = "https://long-moons-march.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
+const API_BASE_URL = "https://few-items-jump.loca.lt"; // НЕ ЗАБУДЬТЕ ЗАМЕНИТЬ!
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
-    // Экраны и UI
     const screens = {
         location: document.getElementById('location-screen'),
         calendar: document.getElementById('calendar-screen'),
@@ -22,15 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
         notifyBtn: document.getElementById('add-notification-btn'),
     };
     const locationList = document.getElementById('location-list');
-    const calendarGrid = document.getElementById('calendar-grid');
-    const monthYearHeader = document.getElementById('month-year-header');
-    const calendarLocationHeader = document.getElementById('calendar-location-header');
-    const prevMonthBtn = document.getElementById('prev-month-btn');
-    const nextMonthBtn = document.getElementById('next-month-btn');
+    const calendarGrids = {
+        current: document.getElementById('calendar-grid-current'),
+        next: document.getElementById('calendar-grid-next')
+    };
+    const monthYearHeaders = {
+        current: document.getElementById('month-year-header-current'),
+        next: document.getElementById('month-year-header-next')
+    };
 
     let state = {
         selectedLocation: null,
-        displayDate: new Date(),
         availableDates: new Set(),
         selectedDateForModal: null,
     };
@@ -55,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchCalendarData() {
+    async function fetchCalendarDataAndRender() {
         if (!state.selectedLocation) return;
-        calendarGrid.innerHTML = '';
+        Object.values(calendarGrids).forEach(grid => grid.innerHTML = '...'); // Показываем загрузку
         try {
             const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
             state.availableDates = new Set(data.available_dates);
-            renderCurrentMonth();
+            renderTwoMonthCalendar();
         } catch (error) { console.error('Ошибка загрузки данных для календаря:', error); }
     }
 
@@ -73,9 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
             card.addEventListener('click', () => {
                 state.selectedLocation = loc.id;
-                calendarLocationHeader.textContent = loc.name;
-                state.displayDate = new Date(); // Сбрасываем на текущий месяц
-                fetchCalendarData();
+                document.getElementById('calendar-location-header').textContent = loc.name;
+                fetchCalendarDataAndRender();
                 showScreen('calendar');
                 tg.BackButton.show();
             });
@@ -83,23 +83,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderCurrentMonth() {
-        renderCalendar(state.displayDate.getFullYear(), state.displayDate.getMonth());
+    function renderTwoMonthCalendar() {
+        const now = new Date();
+        const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        renderCalendar(currentMonthDate, calendarGrids.current, monthYearHeaders.current);
+        renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next);
     }
 
-    function renderCalendar(year, month) {
-        calendarGrid.innerHTML = '';
-        monthYearHeader.textContent = new Date(year, month).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    function renderCalendar(date, gridElement, headerElement) {
+        gridElement.innerHTML = '';
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        headerElement.textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
 
         const firstDayOfMonth = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
 
         let dayOfWeek = firstDayOfMonth.getDay();
-        if (dayOfWeek === 0) dayOfWeek = 7; // Вс = 7
+        if (dayOfWeek === 0) dayOfWeek = 7;
 
         for (let i = 1; i < dayOfWeek; i++) {
-            calendarGrid.appendChild(document.createElement('div'));
+            gridElement.appendChild(document.createElement('div'));
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -121,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 dayCell.classList.add('is-disabled');
             }
-            calendarGrid.appendChild(dayCell);
+            gridElement.appendChild(dayCell);
         }
     }
 
@@ -160,25 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.overlay.classList.remove('visible');
     }
 
-    // --- Обработчики событий ---
-    tg.onEvent('backButtonClicked', () => {
-        showScreen('location');
-        tg.BackButton.hide();
-    });
-
-    prevMonthBtn.addEventListener('click', () => {
-        state.displayDate.setMonth(state.displayDate.getMonth() - 1);
-        renderCurrentMonth();
-    });
-    nextMonthBtn.addEventListener('click', () => {
-        state.displayDate.setMonth(state.displayDate.getMonth() + 1);
-        renderCurrentMonth();
-    });
-
-    modal.closeBtn.addEventListener('click', closeModal);
-    modal.overlay.addEventListener('click', (e) => { if (e.target === modal.overlay) closeModal(); });
-
     async function onConfirmNotification() {
+        tg.MainButton.showProgress();
         const subscription = {
             location: state.selectedLocation, hour: -1,
             court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],
@@ -194,18 +184,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             tg.showAlert('Не удалось добавить уведомление.');
         } finally {
+            tg.MainButton.hideProgress();
             tg.MainButton.hide();
             tg.MainButton.offClick(onConfirmNotification);
             closeModal();
         }
     }
 
+    tg.onEvent('backButtonClicked', () => { showScreen('location'); tg.BackButton.hide(); });
+    modal.closeBtn.addEventListener('click', closeModal);
+    modal.overlay.addEventListener('click', (e) => { if (e.target === modal.overlay) closeModal(); });
     modal.notifyBtn.addEventListener('click', () => {
         tg.MainButton.setText(`Подтвердить на ${new Date(state.selectedDateForModal).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}`);
         tg.MainButton.show();
         tg.MainButton.onClick(onConfirmNotification);
     });
 
-    // --- Инициализация ---
     fetchLocations();
 });

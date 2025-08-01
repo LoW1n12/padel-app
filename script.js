@@ -1,5 +1,5 @@
 // webapp/script.js
-const API_BASE_URL = "https://early-shrimps-clap.loca.lt"; // Замените на ваш актуальный URL
+const API_BASE_URL = "https://seven-maps-doubt.loca.lt"; // Замените на ваш актуальный URL
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;

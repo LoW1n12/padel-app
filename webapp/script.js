@@ -1,270 +1,334 @@
-// webapp/script.js
-const API_BASE_URL = "https://seven-maps-doubt.loca.lt"; // Замените на ваш актуальный URL
+/* style.css */
+:root {
+    --tg-theme-bg-color: #f0f3f8;
+    --tg-theme-text-color: #000000;
+    --tg-theme-button-color: #007aff;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-hint-color: #6d6d72;
+    --tg-theme-secondary-bg-color: #ffffff;
+    --tg-viewport-height: 100vh;
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    tg.BackButton.hide();
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
+    margin: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    overscroll-behavior-y: none;
+    height: var(--tg-viewport-height);
+    overflow: hidden;
+}
 
-    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
+.app-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
 
-    const screens = {
-        location: document.getElementById('location-screen'),
-        calendar: document.getElementById('calendar-screen')
-    };
+header {
+    padding: 12px 16px;
+    text-align: center;
+    background-color: var(--tg-theme-bg-color);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    const modal = {
-        overlay: document.getElementById('detail-modal'),
-        dateHeader: document.getElementById('modal-date-header'),
-        sessionsList: document.getElementById('modal-sessions-list'),
-        closeBtn: document.getElementById('close-modal-btn'),
-        notifyBtn: document.getElementById('add-notification-btn')
-    };
+header h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    flex-grow: 1;
+    text-align: center;
+}
 
-    const locationList = document.getElementById('location-list');
-    const calendarWrapper = document.getElementById('calendar-wrapper');
-    const loaderContainer = document.getElementById('loader-container');
-    const calendarGrids = {
-        current: document.getElementById('calendar-grid-current'),
-        next: document.getElementById('calendar-grid-next')
-    };
-    const monthYearHeaders = {
-        current: document.getElementById('month-year-header-current'),
-        next: document.getElementById('month-year-header-next')
-    };
-    const backBtn = document.getElementById('back-btn');
+.back-button {
+    position: absolute;
+    left: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    let state = {
-        selectedLocation: null,
-        availableDates: new Set(),
-        selectedDateForModal: null
-    };
+.back-button svg {
+    stroke: var(--tg-theme-button-color);
+    width: 16px;
+    height: 26px;
+}
 
-    function showScreen(screenName) {
-        Object.values(screens).forEach(s => s.classList.remove('active'));
-        screens[screenName].classList.add('active');
-    }
+main {
+    overflow-y: auto;
+    flex-grow: 1;
+}
 
-    async function fetchAPI(path) {
-        const response = await fetch(API_BASE_URL + path, {
-            headers: { 'Bypass-Tunnel-Reminder': 'true' }
-        });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    }
+.screen {
+    display: none;
+}
 
-    async function fetchLocations() {
-        try {
-            const data = await fetchAPI('/api/locations');
-            renderLocations(data.locations);
-        } catch (error) {
-            locationList.innerHTML = `<div class="location-card"><h2>Ошибка</h2><p>Не удалось загрузить локации. Убедитесь, что бот и туннель запущены.</p></div>`;
-            console.error('[ERROR] Не удалось загрузить локации:', error);
-        }
-    }
+.screen.active {
+    display: block;
+}
 
-    async function fetchCalendarDataAndRender() {
-        if (!state.selectedLocation) return;
-        loaderContainer.classList.remove('hidden');
-        calendarWrapper.classList.add('hidden');
-        try {
-            const data = await fetchAPI(`/api/calendar?location=${encodeURIComponent(state.selectedLocation)}`);
-            state.availableDates = new Set(data.available_dates);
-            console.log("[LOG] Даты с сеансами получены от API:", Array.from(state.availableDates));
-            renderTwoMonthCalendar();
-        } catch (error) {
-            console.error('[ERROR] Ошибка загрузки данных для календаря:', error);
-        } finally {
-            loaderContainer.classList.add('hidden');
-            calendarWrapper.classList.remove('hidden');
-        }
-    }
+.hidden {
+    display: none !important;
+}
 
-    function renderLocations(locations) {
-        locationList.innerHTML = '';
-        locations.forEach(loc => {
-            const card = document.createElement('div');
-            card.className = 'location-card';
-            card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => {
-                state.selectedLocation = loc.id;
-                document.getElementById('calendar-location-header').textContent = loc.name;
-                fetchCalendarDataAndRender();
-                showScreen('calendar');
-                if (tg.isVersionAtLeast('6.1')) {
-                    tg.BackButton.show();
-                }
-            });
-            locationList.appendChild(card);
-        });
-    }
+/* Loader */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--tg-theme-hint-color);
+}
 
-    function renderTwoMonthCalendar() {
-        const now = new Date();
-        const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        renderCalendar(currentMonthDate, calendarGrids.current, monthYearHeaders.current, true);
-        renderCalendar(nextMonthDate, calendarGrids.next, monthYearHeaders.next, false);
-    }
+.padel-loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--tg-theme-button-color);
+    border-radius: 50%;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
 
-    function renderCalendar(date, gridElement, headerElement, isCurrentMonth) {
-        gridElement.innerHTML = '';
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        headerElement.textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const today = new Date();
+/* Locations */
+.location-list {
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+}
 
-        // Определяем с какого дня рисовать календарь
-        const startDay = isCurrentMonth ? today.getDate() : 1;
+.location-card {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
 
-        // Получаем день недели (понедельник=1,...,воскресенье=7)
-        let firstRenderedDayOfWeek = new Date(year, month, startDay).getDay();
-        if (firstRenderedDayOfWeek === 0) firstRenderedDayOfWeek = 7;
+.location-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
 
-        if (isCurrentMonth) {
-            for (let i = 1; i < firstRenderedDayOfWeek; i++) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'calendar-day is-placeholder';
-                gridElement.appendChild(placeholder);
-            }
-        } else {
-            let firstDayOfMonth = new Date(year, month, 1).getDay();
-            if (firstDayOfMonth === 0) firstDayOfMonth = 7;
-            for (let i = 1; i < firstDayOfMonth; i++) {
-                gridElement.appendChild(document.createElement('div'));
-            }
-        }
+.location-card h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+}
 
-        for (let day = startDay; day <= daysInMonth; day++) {
-            const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day is-future';
+.location-card p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--tg-theme-hint-color);
+}
 
-            const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasSessions = state.availableDates.has(fullDateStr);
-            console.log(`[LOG] Проверка даты: ${fullDateStr}. Есть сеансы: ${hasSessions}`);
+/* Calendar */
+.calendar-main-container {
+    padding: 0 8px;
+}
 
-            if (hasSessions) {
-                dayCell.classList.add('has-sessions');
-                dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            }
+.two-month-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+}
 
-            const span = document.createElement('span');
-            span.textContent = day;
-            dayCell.appendChild(span);
+.calendar-instance {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    padding: 12px;
+}
 
-            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                dayCell.classList.add('is-today');
-            }
+.calendar-header {
+    padding: 4px 4px 8px;
+}
 
-            gridElement.appendChild(dayCell);
-        }
-    }
+.calendar-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
 
-    async function onDateClick(dateStr) {
-        state.selectedDateForModal = dateStr;
-        modal.dateHeader.textContent = new Date(dateStr).toLocaleDateString('ru-RU', {
-            weekday: 'long', day: 'numeric', month: 'long'
-        });
-        modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Загрузка...</div>';
-        modal.overlay.classList.add('visible');
-        try {
-            const data = await fetchAPI(
-                `/api/sessions?location=${encodeURIComponent(state.selectedLocation)}&date=${dateStr}`
-            );
-            renderModalSessions(data);
-        } catch (error) {
-            modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Ошибка загрузки</div>';
-            console.error('[ERROR] Ошибка загрузки сеансов:', error);
-        }
-    }
+.weekdays-grid,
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    gap: 4px;
+}
 
-    function renderModalSessions(data) {
-        modal.sessionsList.innerHTML = '';
-        const sortedTimes = Object.keys(data).sort();
-        if (sortedTimes.length === 0) {
-            modal.sessionsList.innerHTML = '<div class="list-item" style="justify-content:center;">Свободных сеансов нет</div>';
-            return;
-        }
-        const listWrapper = document.createElement('div');
-        listWrapper.style.padding = '0 16px 16px';
-        const list = document.createElement('div');
-        list.style.borderRadius = '12px';
-        list.style.overflow = 'hidden';
+.weekdays-grid div {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tg-theme-hint-color);
+    padding: 8px 0;
+}
 
-        sortedTimes.forEach(time => {
-            const courtData = data[time];
-            const details = Object.entries(courtData)
-                .map(([type, info]) => `${type} - ${info.price} ₽`).join(' | ');
-            const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `<div class="list-item-title">${time}</div><div class="list-item-subtitle">${details}</div>`;
-            list.appendChild(item);
-        });
-        listWrapper.appendChild(list);
-        modal.sessionsList.appendChild(listWrapper);
-    }
+.calendar-day {
+    font-size: 16px;
+    height: 42px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    color: #c7c7cc;
+}
+.calendar-day.is-future {
+    color: var(--tg-theme-text-color);
+}
+.calendar-day.is-placeholder {
+    visibility: hidden;
+}
+.calendar-day.has-sessions {
+    cursor: pointer;
+}
+.calendar-day.has-sessions:active span {
+    transform: scale(0.9);
+}
+.calendar-day.has-sessions:hover:not(.is-today) {
+    background-color: #f0f3f8;
+}
+.calendar-day.is-today span {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color) !important;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.calendar-day.has-sessions::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: var(--tg-theme-button-color);
+    border-radius: 50%;
+}
+.calendar-day.is-today.has-sessions::after {
+    background-color: var(--tg-theme-button-text-color, #fff);
+}
 
-    function closeModal() {
-        modal.overlay.classList.remove('visible');
-    }
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 1000;
+}
 
-    async function onConfirmNotification() {
-        tg.MainButton.showProgress();
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
 
-        const subscription = {
-            location: state.selectedLocation,
-            hour: -1,
-            court_types: ["Корт для 4-х", "Корт для 2-х", "Открытый корт", "Закрытый корт", "Корт (тип 1)", "Корт (тип 2)", "Ultra корт", "Корт"],
-            monitor_data: { type: "specific", value: state.selectedDateForModal }
-        };
+.modal-content {
+    background: #f0f3f8;
+    width: 100%;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/subscribe`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true'
-                },
-                body: JSON.stringify({ initData: tg.initData, subscription: subscription })
-            });
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
 
-            if (!response.ok) throw new Error('Subscription failed');
+.modal-header {
+    padding: 16px;
+    text-align: center;
+    position: relative;
+}
 
-            tg.showAlert('Уведомление успешно добавлено!');
-        } catch (error) {
-            tg.showAlert('Не удалось добавить уведомление.');
-            console.error('[ERROR] Ошибка при подписке:', error);
-        } finally {
-            tg.MainButton.hideProgress();
-            tg.MainButton.hide();
-            tg.MainButton.offClick(onConfirmNotification);
-            closeModal();
-        }
-    }
+.modal-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+}
 
-    function goBackToLocations() {
-        showScreen('location');
-        if (tg.isVersionAtLeast('6.1')) {
-            tg.BackButton.hide();
-        }
-    }
+.close-button {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: #8e8e93;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
 
-    backBtn.addEventListener('click', goBackToLocations);
-    tg.onEvent('backButtonClicked', goBackToLocations);
-    modal.closeBtn.addEventListener('click', closeModal);
-    modal.overlay.addEventListener('click', e => {
-        if (e.target === modal.overlay) closeModal();
-    });
-    modal.notifyBtn.addEventListener('click', () => {
-        tg.MainButton.setText(`Подтвердить на ${new Date(state.selectedDateForModal).toLocaleDateString('ru-RU', {
-            day: 'numeric', month: 'short'
-        })}`);
-        tg.MainButton.show();
-        tg.MainButton.onClick(onConfirmNotification);
-    });
+.modal-body {
+    padding: 0;
+    overflow-y: auto;
+    background-color: white;
+}
 
-    fetchLocations();
-});
+.modal-body .list-item {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid #c6c6c8;
+}
+.modal-body .list-item:last-child {
+    border-bottom: none;
+}
+.modal-body .list-item-title {
+    font-size: 17px;
+}
+.modal-body .list-item-subtitle {
+    font-size: 15px;
+    color: #6d6d72;
+}
+
+.modal-footer {
+    padding: 16px;
+    border-top: 0.5px solid #c6c6c8;
+}
+
+.action-button {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}

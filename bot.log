@@ -2579,3 +2579,24 @@
 2025-08-01 22:14:10,519 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-08-01 22:14:20,560 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
 2025-08-01 22:14:30,601 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:14:33,911 - __main__ - INFO - Бот запускается...
+2025-08-01 22:14:34,044 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getMe "HTTP/1.1 200 OK"
+2025-08-01 22:14:34,044 - bot - INFO - --- Запуск post_init хука ---
+2025-08-01 22:14:34,044 - bot - INFO - --- Задача мониторинга успешно создана ---
+2025-08-01 22:14:34,044 - monitoring - INFO - --- Задача мониторинга запущена ---
+2025-08-01 22:14:34,046 - webapp_server - INFO - 🚀 Веб-сервер для Mini App запущен на http://0.0.0.0:8080
+2025-08-01 22:14:34,093 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/deleteWebhook "HTTP/1.1 200 OK"
+2025-08-01 22:14:34,093 - apscheduler.scheduler - INFO - Scheduler started
+2025-08-01 22:14:34,093 - telegram.ext.Application - INFO - Application started
+2025-08-01 22:14:44,220 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:14:44,866 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:14:45,047 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/sendMessage "HTTP/1.1 200 OK"
+2025-08-01 22:14:46,549 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:14:46,693 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/sendMessage "HTTP/1.1 200 OK"
+2025-08-01 22:14:56,595 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:06,643 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:16,688 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:26,733 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:36,777 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:46,826 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-01 22:15:56,869 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"

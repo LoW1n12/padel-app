@@ -3,13 +3,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
     const API_BASE_URL = "https://rich-results-laugh.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
+    const CALENDAR_DAYS_TO_SHOW = 20; // ИЗМЕНЕНО: Новая константа для управления диапазоном дат
     const tg = window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
     tg.BackButton.hide();
 
-    // Применение темы Telegram
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
     // --- DOM ЭЛЕМЕНТЫ ---
@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ЛОГИКА API ---
     async function fetchAPI(path, options = {}) {
-        // Добавляем заголовок для обхода стандартного предупреждения localtunnel
         const defaultHeaders = { 'Bypass-Tunnel-Reminder': 'true' };
         options.headers = { ...defaultHeaders, ...options.headers };
 
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(API_BASE_URL + path, options);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Ошибка сети' }));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             return response.json();
         } catch (error) {
@@ -112,35 +111,43 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoader();
         showScreen('calendar');
         try {
-            // ИСПРАВЛЕНО: Отправляем location_id вместо location
             const data = await fetchAPI(`/api/calendar?location_id=${state.selectedLocationId}`);
             state.availableDates = new Set(data.available_dates);
-            renderTwoMonthCalendar();
+            renderCalendars(); // ИЗМЕНЕНО: Вызываем новую функцию
         } catch (error) {
-            // Вернуться назад, если не удалось загрузить календарь
             showScreen('location');
         } finally {
             hideLoader();
         }
     }
 
-    function renderTwoMonthCalendar() {
-        elements.calendarWrapper.innerHTML = ''; // Очищаем контейнер
-        const now = new Date();
-        const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    // ИЗМЕНЕНО: Полностью переписанная логика рендеринга календаря
+    function renderCalendars() {
+        elements.calendarWrapper.innerHTML = '';
+        const today = new Date();
+        const firstMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        elements.calendarWrapper.appendChild(createCalendarInstance(currentMonthDate, true));
-        elements.calendarWrapper.appendChild(createCalendarInstance(nextMonthDate, false));
+        // Определяем конечную дату для отображения
+        const limitDate = new Date(today);
+        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
+
+        // Рендерим первый месяц
+        elements.calendarWrapper.appendChild(createCalendarInstance(firstMonthDate));
+
+        // Рендерим второй месяц, только если диапазон 20 дней заходит на него
+        if (limitDate.getMonth() !== today.getMonth()) {
+            const secondMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            elements.calendarWrapper.appendChild(createCalendarInstance(secondMonthDate));
+        }
     }
 
-    function createCalendarInstance(date, isCurrentMonth) {
+    function createCalendarInstance(dateForMonth) {
         const instance = document.createElement('div');
         instance.className = 'calendar-instance';
 
         const header = document.createElement('div');
         header.className = 'calendar-header';
-        header.innerHTML = `<h2>${date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
+        header.innerHTML = `<h2>${dateForMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
 
         const weekdays = document.createElement('div');
         weekdays.className = 'weekdays-grid';
@@ -151,14 +158,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.createElement('div');
         grid.className = 'calendar-grid';
 
-        const year = date.getFullYear();
-        const month = date.getMonth();
+        const year = dateForMonth.getFullYear();
+        const month = dateForMonth.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
+
         const today = new Date();
-        const startDay = isCurrentMonth ? today.getDate() : 1;
+        today.setHours(0, 0, 0, 0); // Нормализуем для точного сравнения
+
+        const limitDate = new Date();
+        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
+        limitDate.setHours(0, 0, 0, 0);
 
         let firstDayOfWeek = new Date(year, month, 1).getDay();
-        if (firstDayOfWeek === 0) firstDayOfWeek = 7; // Вс = 7
+        if (firstDayOfWeek === 0) firstDayOfWeek = 7; // Вс = 7, Пн = 1
 
         for (let i = 1; i < firstDayOfWeek; i++) {
             grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`;
@@ -166,11 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
+            const currentDate = new Date(year, month, day);
             dayCell.className = 'calendar-day';
 
-            if (day < startDay && isCurrentMonth) {
-                // Прошедшие дни текущего месяца
-            } else {
+            // Проверяем, входит ли день в наш 20-дневный диапазон
+            if (currentDate >= today && currentDate < limitDate) {
                 dayCell.classList.add('is-future');
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
@@ -184,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             span.textContent = day;
             dayCell.appendChild(span);
 
-            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+            if (currentDate.getTime() === today.getTime()) {
                 dayCell.classList.add('is-today');
             }
 
@@ -197,12 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function onDateClick(dateStr) {
         state.selectedDateForModal = dateStr;
-        elements.modal.dateHeader.textContent = new Date(dateStr).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+        elements.modal.dateHeader.textContent = new Date(dateStr.replace(/-/g, '/')).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
         elements.modal.sessionsList.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
 
         try {
-            // ИСПРАВЛЕНО: Отправляем location_id
             const data = await fetchAPI(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`);
             renderSessions(data.sessions);
         } catch (error) {
@@ -225,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function addNotification() {
-        tg.showConfirm("Добавить отслеживание на эту дату?", async (ok) => {
+        tg.showConfirm(`Добавить отслеживание на ${new Date(state.selectedDateForModal.replace(/-/g, '/')).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}?`, async (ok) => {
             if (ok) {
                 try {
                     tg.MainButton.showProgress();

@@ -1,75 +1,70 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Padel Bot</title>
-    <link rel="stylesheet" href="style.css?v=1.8.0" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Выбор корта</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Экран 1: Выбор локации -->
-        <div id="location-screen" class="screen active">
-            <header><h1>Выберите клуб</h1></header>
-            <main><div id="location-list" class="location-list"></div></main>
-        </div>
+        <!-- Шапка приложения -->
+        <header>
+            <button id="back-btn" class="back-button hidden">
+                <svg width="13" height="22" viewBox="0 0 13 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.5 20.5L1.5 11L11.5 1.5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <h1 id="header-title">Локации</h1>
+        </header>
 
-        <!-- Экран 2: Календарь -->
-        <div id="calendar-screen" class="screen">
-            <header>
-                <button id="back-btn" class="header-button back-button" aria-label="Назад">
-                    <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
-                <h1 id="calendar-location-header"></h1>
-            </header>
-            <main class="calendar-main-container">
-                <div id="loader-container" class="loader-container">
-                    <div class="padel-loader"></div>
-                    <p>Ищем свободные корты...</p>
+        <!-- Основной контент -->
+        <main>
+            <!-- Экран загрузки -->
+            <div id="loader-container" class="loader-container">
+                <div class="padel-loader"></div>
+                <p>Загрузка...</p>
+            </div>
+
+            <!-- Экран выбора локации -->
+            <div id="location-screen" class="screen">
+                <div id="location-list" class="location-list">
+                    <!-- Карточки локаций будут вставлены сюда -->
                 </div>
-                <div id="calendar-wrapper" class="hidden">
-                    <div class="two-month-container">
-                        <div class="calendar-instance">
-                            <div class="calendar-header">
-                                <h2 id="month-year-header-current"></h2>
-                            </div>
-                            <div class="weekdays-grid">
-                                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-                            </div>
-                            <div id="calendar-grid-current" class="calendar-grid"></div>
-                        </div>
-                        <div class="calendar-instance">
-                            <div class="calendar-header">
-                                <h2 id="month-year-header-next"></h2>
-                            </div>
-                            <div class="weekdays-grid">
-                                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-                            </div>
-                            <div id="calendar-grid-next" class="calendar-grid"></div>
-                        </div>
+            </div>
+
+            <!-- Экран календаря -->
+            <div id="calendar-screen" class="screen">
+                <div class="calendar-main-container">
+                    <div id="calendar-wrapper" class="two-month-container">
+                        <!-- Календари будут вставлены сюда -->
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
     <!-- Модальное окно для сеансов -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-date-header"></h3>
-                <button id="close-modal-btn" class="close-button" aria-label="Закрыть">&times;</button>
+            <header class="modal-header">
+                <h3 id="modal-date-header">Доступные сеансы</h3>
+                <button id="close-modal-btn" class="close-button">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div id="modal-sessions-list">
+                    <!-- Список сеансов будет здесь -->
+                </div>
             </div>
-            <div id="modal-sessions-list" class="modal-body"></div>
-            <div class="modal-footer">
-                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
-            </div>
+            <footer class="modal-footer">
+                <button id="add-notification-btn" class="action-button">
+                    🔔 Уведомить на эту дату
+                </button>
+            </footer>
         </div>
     </div>
 
-    <script src="script.js?v=1.8.0"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

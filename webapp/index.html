@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Padel Bot</title>
-    <!-- Версия обновлена для сброса кэша -->
-    <link rel="stylesheet" href="style.css?v=1.8.0">
+    <link rel="stylesheet" href="style.css?v=1.8.0" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -18,10 +17,11 @@
 
         <!-- Экран 2: Календарь -->
         <div id="calendar-screen" class="screen">
-            <!-- ИЗМЕНЕНО: Добавлена кнопка назад -->
             <header>
-                <button id="back-btn" class="header-button back-button">
-                    <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <button id="back-btn" class="header-button back-button" aria-label="Назад">
+                    <svg width="12" height="20" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1L1 8L8 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
                 </button>
                 <h1 id="calendar-location-header"></h1>
             </header>
@@ -33,13 +33,21 @@
                 <div id="calendar-wrapper" class="hidden">
                     <div class="two-month-container">
                         <div class="calendar-instance">
-                            <div class="calendar-header"><h2 id="month-year-header-current"></h2></div>
-                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div class="calendar-header">
+                                <h2 id="month-year-header-current"></h2>
+                            </div>
+                            <div class="weekdays-grid">
+                                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                            </div>
                             <div id="calendar-grid-current" class="calendar-grid"></div>
                         </div>
                         <div class="calendar-instance">
-                            <div class="calendar-header"><h2 id="month-year-header-next"></h2></div>
-                            <div class="weekdays-grid"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                            <div class="calendar-header">
+                                <h2 id="month-year-header-next"></h2>
+                            </div>
+                            <div class="weekdays-grid">
+                                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                            </div>
                             <div id="calendar-grid-next" class="calendar-grid"></div>
                         </div>
                     </div>
@@ -48,16 +56,20 @@
         </div>
     </div>
 
-    <!-- Модальное окно -->
+    <!-- Модальное окно для сеансов -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h3 id="modal-date-header"></h3><button id="close-modal-btn" class="close-button">&times;</button></div>
+            <div class="modal-header">
+                <h3 id="modal-date-header"></h3>
+                <button id="close-modal-btn" class="close-button" aria-label="Закрыть">&times;</button>
+            </div>
             <div id="modal-sessions-list" class="modal-body"></div>
-            <div class="modal-footer"><button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button></div>
+            <div class="modal-footer">
+                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
+            </div>
         </div>
     </div>
 
-    <!-- Версия обновлена -->
     <script src="script.js?v=1.8.0"></script>
 </body>
 </html>

@@ -2,4 +2,3 @@ python-telegram-bot[ext]
 python-dotenv
 aiohttp
 psutil
-aiohttp_cors

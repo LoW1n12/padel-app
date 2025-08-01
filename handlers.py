@@ -92,8 +92,6 @@ async def show_sessions(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_sessions_location_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет или редактирует сообщение с кнопками выбора локации."""
-    # ИЗМЕНЕНО: Убрана сортировка, чтобы порядок соответствовал config.py
     keyboard = [[InlineKeyboardButton(loc, callback_data=f"sessions_loc_{loc}")] for loc in LOCATIONS_CONFIG.keys()]
     text = "📍 Выберите локацию для просмотра сеансов:"
     if update.callback_query:
@@ -184,8 +182,6 @@ async def add_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_location_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, new_message: bool = False):
-    """Отправляет выбор локации для отслеживания."""
-    # ИЗМЕНЕНО: Убрана сортировка, чтобы порядок соответствовал config.py
     keyboard = [[InlineKeyboardButton(loc, callback_data=f"loc_{loc}")] for loc in LOCATIONS_CONFIG.keys()]
     text = "📍 Выберите локацию для отслеживания:"
     if new_message:
@@ -194,53 +190,104 @@ async def send_location_selection(update: Update, context: ContextTypes.DEFAULT_
         await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
+# ИЗМЕНЕНО: Добавлена логика проверки существующих подписок
 async def send_monitoring_type_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = query.from_user.id
     location = context.user_data.get('location')
 
-    keyboard = [
-        [InlineKeyboardButton(f"На ближайшие {DEFAULT_RANGE_DAYS} дней",
-                              callback_data=f"mon_type_range_{DEFAULT_RANGE_DAYS}")],
-        [InlineKeyboardButton("Выбрать конкретную дату", callback_data="mon_type_specific")],
-        [InlineKeyboardButton("⬅️ Назад", callback_data="back_to_loc_select")]
-    ]
+    user_times = db.get_user_times(user_id)
+    # Проверяем, есть ли уже подписка "на 10 дней, любое время" для этой локации
+    has_range_any_time_sub = any(
+        sub['location'] == location and
+        sub['monitor_data'].get('type') == 'range' and
+        sub['monitor_data'].get('value') == DEFAULT_RANGE_DAYS and
+        sub['hour'] == ANY_HOUR_PLACEHOLDER
+        for sub in user_times
+    )
+
+    keyboard = []
+    # Показываем кнопку, только если такой подписки еще нет
+    if not has_range_any_time_sub:
+        keyboard.append([InlineKeyboardButton(f"На ближайшие {DEFAULT_RANGE_DAYS} дней",
+                                              callback_data=f"mon_type_range_{DEFAULT_RANGE_DAYS}")])
+
+    keyboard.append([InlineKeyboardButton("Выбрать конкретную дату", callback_data="mon_type_specific")])
+    keyboard.append([InlineKeyboardButton("⬅️ Назад", callback_data="back_to_loc_select")])
+
     await query.edit_message_text(f"📍 <b>{location}</b>\n🗓️ Выберите тип мониторинга:",
                                   reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.HTML)
 
 
+# ИЗМЕНЕНО: Добавлена логика проверки существующих подписок
 async def send_date_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = query.from_user.id
     location = context.user_data.get('location')
-    today = date.today()
 
-    keyboard_rows = []
-    buttons_in_row = []
+    user_times = db.get_user_times(user_id)
+    # Собираем все даты, на которые уже есть подписка "любое время" для этой локации
+    existing_any_time_dates = {
+        sub['monitor_data']['value'] for sub in user_times
+        if sub['location'] == location and
+           sub['monitor_data'].get('type') == 'specific' and
+           sub['hour'] == ANY_HOUR_PLACEHOLDER
+    }
+
+    today = date.today()
+    keyboard_rows, buttons_in_row = [], []
+    any_date_button_added = False
+
     for i in range(MAX_SPECIFIC_DAYS):
         d = today + timedelta(days=i)
-        buttons_in_row.append(InlineKeyboardButton(d.strftime('%d.%m'), callback_data=f"mon_date_{d.isoformat()}"))
-        if len(buttons_in_row) == 5:
-            keyboard_rows.append(buttons_in_row)
-            buttons_in_row = []
+        date_iso = d.isoformat()
+        # Показываем дату, только если на нее нет подписки "любое время"
+        if date_iso not in existing_any_time_dates:
+            any_date_button_added = True
+            buttons_in_row.append(InlineKeyboardButton(d.strftime('%d.%m'), callback_data=f"mon_date_{date_iso}"))
+            if len(buttons_in_row) == 5:
+                keyboard_rows.append(buttons_in_row)
+                buttons_in_row = []
     if buttons_in_row:
         keyboard_rows.append(buttons_in_row)
 
     keyboard_rows.append([InlineKeyboardButton("⬅️ Назад", callback_data="back_to_mon_type")])
+
     text = f"📍 <b>{location}</b>\n🗓️ Выберите дату для отслеживания:"
-    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard_rows), parse_mode=ParseMode.HTML)
+    if not any_date_button_added:
+        text = f"📍 <b>{location}</b>\n🗓️ У вас уже есть отслеживания на 'любое время' для всех доступных дат.\n\nУдалите подписки в /mytimes, чтобы добавить новые."
+        final_keyboard = [[InlineKeyboardButton("⬅️ Назад", callback_data="back_to_mon_type")]]
+    else:
+        final_keyboard = keyboard_rows
+
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(final_keyboard), parse_mode=ParseMode.HTML)
 
 
+# ИЗМЕНЕНО: Добавлена логика проверки существующих подписок
 async def send_hour_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = query.from_user.id
     location = context.user_data.get('location')
     monitor_data = context.user_data.get('monitor_data', {})
 
+    user_times = db.get_user_times(user_id)
+    # Собираем часы, на которые уже есть подписка для этой локации и этого типа мониторинга (даты/диапазона)
+    existing_hours = {
+        sub['hour'] for sub in user_times
+        if sub['location'] == location and sub['monitor_data'] == monitor_data
+    }
+
     keyboard_rows = []
-    hour_buttons = [InlineKeyboardButton(f"{h:02d}:00", callback_data=f"hour_{h}") for h in range(7, 24)]
+    # Показываем только те часы, на которые еще нет подписки
+    hour_buttons = [InlineKeyboardButton(f"{h:02d}:00", callback_data=f"hour_{h}") for h in range(7, 24) if
+                    h not in existing_hours]
 
     for i in range(0, len(hour_buttons), 4):
         keyboard_rows.append(hour_buttons[i:i + 4])
 
-    keyboard_rows.append([InlineKeyboardButton("👀 Любое время", callback_data="hour_all")])
+    # Показываем кнопку "Любое время", если она еще не выбрана
+    if ANY_HOUR_PLACEHOLDER not in existing_hours:
+        keyboard_rows.append([InlineKeyboardButton("👀 Любое время", callback_data="hour_all")])
 
     back_callback = "back_to_date_select" if monitor_data.get("type") == "specific" else "back_to_mon_type"
     keyboard_rows.append([InlineKeyboardButton("⬅️ Назад", callback_data=back_callback)])

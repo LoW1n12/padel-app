@@ -5,11 +5,8 @@ import logging
 from datetime import datetime
 from functools import wraps
 import aiohttp
-import aiohttp_cors
-from aiohttp import web
 
-# ИЗМЕНЕНО: Добавлены ReplyKeyboardMarkup и KeyboardButton для создания кнопок
-from telegram import Update, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import Conflict
 
@@ -23,16 +20,29 @@ from admin_handlers import (
     admin_panel, show_status, admin_add, admin_remove, admin_list, admin_users
 )
 from monitoring import monitor_availability
-from api import setup_api_routes
+# ИЗМЕНЕНО: Импортируем функцию для создания веб-сервера
+from webapp_server import create_webapp_server
 
 logger = logging.getLogger(__name__)
+
+
+# ================== НОВАЯ КОМАНДА ДЛЯ ЗАПУСКА WEBAPP ==================
+
+async def webapp_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет кнопку для запуска Mini App."""
+    # !!! ВАЖНО: Замените URL на ваш URL от GitHub Pages !!!
+    WEBAPP_URL = "https://low1n12.github.io/padel-app/"
+
+    keyboard = [[InlineKeyboardButton("🎾 Открыть приложение", web_app={"url": WEBAPP_URL})]]
+    await update.message.reply_text(
+        "Нажмите на кнопку ниже, чтобы открыть удобный интерфейс для поиска кортов:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
 # ================== ДЕКОРАТОРЫ И ОБРАБОТЧИКИ ЖИЗНЕННОГО ЦИКЛА ==================
 
 def admin_required(func):
-    """Декоратор для проверки прав администратора."""
-
     @wraps(func)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         if not db.is_admin(update.effective_user.id):
@@ -44,63 +54,31 @@ def admin_required(func):
     return wrapper
 
 
-# Команда для запуска Mini App
-@ensure_user_registered
-async def app_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет кнопку для запуска Mini App."""
-    await update.message.reply_text(
-        "Нажмите кнопку ниже, чтобы открыть удобный интерфейс для просмотра и бронирования сеансов.",
-        # ИЗМЕНЕНО: Убрано некорректное 'web.' перед классами кнопок Telegram
-        reply_markup=ReplyKeyboardMarkup.from_button(
-            KeyboardButton("🎾 Открыть приложение", web_app=WebAppInfo(url=config.MINI_APP_URL)),
-            resize_keyboard=True
-        )
-    )
-
-
 async def post_init(application: Application):
-    """Выполняется после инициализации для настройки ресурсов."""
     logger.info("--- Запуск post_init хука ---")
-    db.init_database()
     application.bot_data['start_time'] = datetime.now()
     application.bot_data['aiohttp_session'] = aiohttp.ClientSession(headers={'User-Agent': 'Mozilla/5.0'})
 
     # Запуск фоновой задачи мониторинга
     monitor_task = asyncio.create_task(monitor_availability(application))
     application.bot_data['monitor_task'] = monitor_task
+    logger.info("--- Задача мониторинга успешно создана ---")
 
-    # Настройка и запуск веб-сервера для API
-    web_app = web.Application()
-    web_app['bot_app'] = application
-    setup_api_routes(application, web_app)
-
-    cors = aiohttp_cors.setup(web_app, defaults={
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
-        )
-    })
-    for route in list(web_app.router.routes()):
-        cors.add(route)
-
-    runner = web.AppRunner(web_app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 8080)
-    await site.start()
-    application.bot_data['web_runner'] = runner
-    logger.info("--- Веб-сервер для API успешно запущен на порту 8080 ---")
+    # ИЗМЕНЕНО: Запуск веб-сервера для Mini App
+    webapp_task = asyncio.create_task(create_webapp_server(bot_app=application))
+    application.bot_data['webapp_task'] = webapp_task
 
 
 async def post_shutdown(application: Application):
-    """Выполняется перед завершением работы для освобождения ресурсов."""
     logger.info("--- Запуск post_shutdown хука ---")
     if monitor_task := application.bot_data.get('monitor_task'):
         monitor_task.cancel()
+    # ИЗМЕНЕНО: Корректная остановка веб-сервера
+    if webapp_task := application.bot_data.get('webapp_task'):
+        webapp_task.cancel()
+
     if session := application.bot_data.get('aiohttp_session'):
         await session.close()
-    if runner := application.bot_data.get('web_runner'):
-        await runner.cleanup()
     db.close()
     logger.info("--- Ресурсы успешно освобождены ---")
 
@@ -114,18 +92,14 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 # ================== ФУНКЦИЯ СБОРКИ ПРИЛОЖЕНИЯ ==================
 
 def create_bot_app() -> Application:
-    """Создает и настраивает экземпляр приложения Telegram бота."""
-    application = (
-        Application.builder()
-        .token(config.BOT_TOKEN)
-        .post_init(post_init)
-        .post_shutdown(post_shutdown)
-        .build()
-    )
+    application = Application.builder().token(config.BOT_TOKEN).post_init(post_init).post_shutdown(
+        post_shutdown).build()
 
     # --- РЕГИСТРАЦИЯ ОБРАБОТЧИКОВ ---
+    # ИЗМЕНЕНО: Добавлен обработчик команды /webapp
+    application.add_handler(CommandHandler("webapp", webapp_command))
+
     application.add_handler(CommandHandler("start", apply_flood_control(ensure_user_registered(start))))
-    application.add_handler(CommandHandler("app", app_command))
     application.add_handler(CommandHandler("help", apply_flood_control(ensure_user_registered(help_command))))
     application.add_handler(CommandHandler("sessions", apply_flood_control(ensure_user_registered(show_sessions))))
     application.add_handler(CommandHandler("addtime", apply_flood_control(ensure_user_registered(add_time))))

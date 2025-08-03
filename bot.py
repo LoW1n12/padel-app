@@ -6,7 +6,7 @@ from datetime import datetime
 from functools import wraps
 import aiohttp
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonWebApp, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import Conflict
 
@@ -20,18 +20,16 @@ from admin_handlers import (
     admin_panel, show_status, admin_add, admin_remove, admin_list, admin_users
 )
 from monitoring import monitor_availability
-# ИЗМЕНЕНО: Импортируем функцию для создания веб-сервера
 from webapp_server import create_webapp_server
 
 logger = logging.getLogger(__name__)
 
 
-# ================== НОВАЯ КОМАНДА ДЛЯ ЗАПУСКА WEBAPP ==================
-
+# --- КОМАНДА ДЛЯ ЗАПУСКА WEBAPP (ОСТАЕТСЯ КАК АЛЬТЕРНАТИВНЫЙ СПОСОБ) ---
 async def webapp_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отправляет кнопку для запуска Mini App."""
-    # !!! ВАЖНО: Замените URL на ваш URL от GitHub Pages !!!
-    WEBAPP_URL = "https://low1n12.github.io/padel-app/"
+    # !!! ВАЖНО: Убедитесь, что здесь ваш актуальный URL от GitHub Pages !!!
+    WEBAPP_URL = "https://ВАШ_ЛОГИН.github.io/ВАШ_РЕПОЗИТОРИЙ/"
 
     keyboard = [[InlineKeyboardButton("🎾 Открыть приложение", web_app={"url": WEBAPP_URL})]]
     await update.message.reply_text(
@@ -46,8 +44,6 @@ def admin_required(func):
     @wraps(func)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         if not db.is_admin(update.effective_user.id):
-            logger.warning(
-                f"Попытка несанкционированного доступа к админ-команде от user_id={update.effective_user.id}")
             return
         return await func(update, context, *args, **kwargs)
 
@@ -55,6 +51,7 @@ def admin_required(func):
 
 
 async def post_init(application: Application):
+    """Выполняется после инициализации приложения для настройки ресурсов."""
     logger.info("--- Запуск post_init хука ---")
     application.bot_data['start_time'] = datetime.now()
     application.bot_data['aiohttp_session'] = aiohttp.ClientSession(headers={'User-Agent': 'Mozilla/5.0'})
@@ -64,16 +61,29 @@ async def post_init(application: Application):
     application.bot_data['monitor_task'] = monitor_task
     logger.info("--- Задача мониторинга успешно создана ---")
 
-    # ИЗМЕНЕНО: Запуск веб-сервера для Mini App
+    # Запуск веб-сервера для Mini App
     webapp_task = asyncio.create_task(create_webapp_server(bot_app=application))
     application.bot_data['webapp_task'] = webapp_task
 
+    # ИЗМЕНЕНО: Устанавливаем кнопку меню для запуска Web App
+    try:
+        WEBAPP_URL = "https://low1n12.github.io/padel-app/"  # Повторно используем URL
+        await application.bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(
+                text="🎾 Найти корт",
+                web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+        )
+        logger.info("--- Кнопка меню для Web App успешно установлена ---")
+    except Exception as e:
+        logger.error(f"Не удалось установить кнопку меню: {e}")
+
 
 async def post_shutdown(application: Application):
+    """Выполняется перед завершением работы для освобождения ресурсов."""
     logger.info("--- Запуск post_shutdown хука ---")
     if monitor_task := application.bot_data.get('monitor_task'):
         monitor_task.cancel()
-    # ИЗМЕНЕНО: Корректная остановка веб-сервера
     if webapp_task := application.bot_data.get('webapp_task'):
         webapp_task.cancel()
 
@@ -96,9 +106,7 @@ def create_bot_app() -> Application:
         post_shutdown).build()
 
     # --- РЕГИСТРАЦИЯ ОБРАБОТЧИКОВ ---
-    # ИЗМЕНЕНО: Добавлен обработчик команды /webapp
     application.add_handler(CommandHandler("webapp", webapp_command))
-
     application.add_handler(CommandHandler("start", apply_flood_control(ensure_user_registered(start))))
     application.add_handler(CommandHandler("help", apply_flood_control(ensure_user_registered(help_command))))
     application.add_handler(CommandHandler("sessions", apply_flood_control(ensure_user_registered(show_sessions))))

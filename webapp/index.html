@@ -8,43 +8,27 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Шапка приложения -->
         <header>
-            <button id="back-btn" class="back-button hidden">
-                <svg width="13" height="22" viewBox="0 0 13 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11.5 20.5L1.5 11L11.5 1.5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
+            <button id="back-btn" class="back-button hidden">&lt;</button>
             <h1 id="header-title">Локации</h1>
         </header>
 
-        <!-- Основной контент -->
         <main>
-            <!-- Экран загрузки -->
             <div id="loader-container" class="loader-container">
                 <div class="padel-loader"></div>
                 <p>Загрузка...</p>
             </div>
-
-            <!-- Экран выбора локации -->
             <div id="location-screen" class="screen">
-                <div id="location-list" class="location-list">
-                    <!-- Карточки локаций будут вставлены сюда -->
-                </div>
+                <div id="location-list" class="location-list"></div>
             </div>
-
-            <!-- Экран календаря -->
             <div id="calendar-screen" class="screen">
                 <div class="calendar-main-container">
-                    <div id="calendar-wrapper" class="two-month-container">
-                        <!-- Календари будут вставлены сюда -->
-                    </div>
+                    <div id="calendar-wrapper" class="two-month-container"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Модальное окно для сеансов -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
@@ -52,14 +36,11 @@
                 <button id="close-modal-btn" class="close-button">&times;</button>
             </header>
             <div class="modal-body">
-                <div id="modal-sessions-list">
-                    <!-- Список сеансов будет здесь -->
-                </div>
+                <div id="sessions-grid" class="sessions-grid"></div>
             </div>
             <footer class="modal-footer">
-                <button id="add-notification-btn" class="action-button">
-                    🔔 Уведомить на эту дату
-                </button>
+                <a id="booking-link-btn" href="#" target="_blank" class="action-button green hidden">🎾 Забронировать</a>
+                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
             </footer>
         </div>
     </div>

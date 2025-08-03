@@ -2,8 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://deep-squids-show.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
-    const CALENDAR_DAYS_TO_SHOW = 20; // ИЗМЕНЕНО: Новая константа для управления диапазоном дат
+    const API_BASE_URL = "https://modern-actors-show.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
+    const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
     tg.ready();
@@ -17,18 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
         loader: document.getElementById('loader-container'),
         headerTitle: document.getElementById('header-title'),
         backBtn: document.getElementById('back-btn'),
-        screens: {
-            location: document.getElementById('location-screen'),
-            calendar: document.getElementById('calendar-screen'),
-        },
+        screens: { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen') },
         locationList: document.getElementById('location-list'),
         calendarWrapper: document.getElementById('calendar-wrapper'),
         modal: {
             overlay: document.getElementById('detail-modal'),
             dateHeader: document.getElementById('modal-date-header'),
-            sessionsList: document.getElementById('modal-sessions-list'),
+            sessionsGrid: document.getElementById('sessions-grid'),
             closeBtn: document.getElementById('close-modal-btn'),
             notifyBtn: document.getElementById('add-notification-btn'),
+            bookingBtn: document.getElementById('booking-link-btn'),
         }
     };
 
@@ -41,11 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDateForModal: null,
     };
 
-    // --- ЛОГИКА API ---
     async function fetchAPI(path, options = {}) {
         const defaultHeaders = { 'Bypass-Tunnel-Reminder': 'true' };
         options.headers = { ...defaultHeaders, ...options.headers };
-
         try {
             const response = await fetch(API_BASE_URL + path, options);
             if (!response.ok) {
@@ -60,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- ФУНКЦИИ ОТОБРАЖЕНИЯ ---
     function showScreen(screenName) {
         Object.values(elements.screens).forEach(s => s.classList.remove('active'));
         elements.screens[screenName].classList.add('active');
@@ -87,9 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await fetchAPI('/api/locations');
             renderLocations(data.locations);
             showScreen('location');
-        } catch (error) {
-            // Ошибка уже показана в fetchAPI
-        } finally {
+        } catch (error) { /* Ошибка уже показана */ } finally {
             hideLoader();
         }
     }
@@ -113,28 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchAPI(`/api/calendar?location_id=${state.selectedLocationId}`);
             state.availableDates = new Set(data.available_dates);
-            renderCalendars(); // ИЗМЕНЕНО: Вызываем новую функцию
-        } catch (error) {
-            showScreen('location');
-        } finally {
+            renderCalendars();
+        } catch (error) { showScreen('location'); } finally {
             hideLoader();
         }
     }
 
-    // ИЗМЕНЕНО: Полностью переписанная логика рендеринга календаря
     function renderCalendars() {
         elements.calendarWrapper.innerHTML = '';
         const today = new Date();
         const firstMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-
-        // Определяем конечную дату для отображения
         const limitDate = new Date(today);
         limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
-
-        // Рендерим первый месяц
         elements.calendarWrapper.appendChild(createCalendarInstance(firstMonthDate));
-
-        // Рендерим второй месяц, только если диапазон 20 дней заходит на него
         if (limitDate.getMonth() !== today.getMonth()) {
             const secondMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
             elements.calendarWrapper.appendChild(createCalendarInstance(secondMonthDate));
@@ -144,65 +128,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function createCalendarInstance(dateForMonth) {
         const instance = document.createElement('div');
         instance.className = 'calendar-instance';
-
         const header = document.createElement('div');
         header.className = 'calendar-header';
         header.innerHTML = `<h2>${dateForMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
-
         const weekdays = document.createElement('div');
         weekdays.className = 'weekdays-grid';
-        ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => {
-            weekdays.innerHTML += `<div>${day}</div>`;
-        });
-
+        ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => { weekdays.innerHTML += `<div>${day}</div>`; });
         const grid = document.createElement('div');
         grid.className = 'calendar-grid';
-
         const year = dateForMonth.getFullYear();
         const month = dateForMonth.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Нормализуем для точного сравнения
-
+        today.setHours(0, 0, 0, 0);
         const limitDate = new Date();
         limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
         limitDate.setHours(0, 0, 0, 0);
-
         let firstDayOfWeek = new Date(year, month, 1).getDay();
-        if (firstDayOfWeek === 0) firstDayOfWeek = 7; // Вс = 7, Пн = 1
-
-        for (let i = 1; i < firstDayOfWeek; i++) {
-            grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`;
-        }
-
+        if (firstDayOfWeek === 0) firstDayOfWeek = 7;
+        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`; }
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             const currentDate = new Date(year, month, day);
             dayCell.className = 'calendar-day';
-
-            // Проверяем, входит ли день в наш 20-дневный диапазон
             if (currentDate >= today && currentDate < limitDate) {
                 dayCell.classList.add('is-future');
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
                 if (state.availableDates.has(fullDateStr)) {
                     dayCell.classList.add('has-sessions');
                     dayCell.addEventListener('click', () => onDateClick(fullDateStr));
                 }
             }
-
             const span = document.createElement('span');
             span.textContent = day;
             dayCell.appendChild(span);
-
-            if (currentDate.getTime() === today.getTime()) {
-                dayCell.classList.add('is-today');
-            }
-
+            if (currentDate.getTime() === today.getTime()) { dayCell.classList.add('is-today'); }
             grid.appendChild(dayCell);
         }
-
         instance.append(header, weekdays, grid);
         return instance;
     }
@@ -210,28 +172,35 @@ document.addEventListener('DOMContentLoaded', () => {
     async function onDateClick(dateStr) {
         state.selectedDateForModal = dateStr;
         elements.modal.dateHeader.textContent = new Date(dateStr.replace(/-/g, '/')).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-        elements.modal.sessionsList.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
+        elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
 
         try {
             const data = await fetchAPI(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`);
             renderSessions(data.sessions);
+            if (data.booking_link) {
+                elements.modal.bookingBtn.href = data.booking_link;
+                elements.modal.bookingBtn.classList.remove('hidden');
+            } else {
+                elements.modal.bookingBtn.classList.add('hidden');
+            }
         } catch (error) {
-            elements.modal.sessionsList.innerHTML = `<div class="list-item"><div class="list-item-title">Ошибка загрузки</div></div>`;
+            elements.modal.sessionsGrid.innerHTML = `<p class="session-slot-details">Ошибка загрузки сеансов</p>`;
         }
     }
 
     function renderSessions(sessions) {
+        const grid = elements.modal.sessionsGrid;
+        grid.innerHTML = '';
         if (!sessions || sessions.length === 0) {
-            elements.modal.sessionsList.innerHTML = `<div class="list-item"><div class="list-item-title">Свободных сеансов нет</div></div>`;
+            grid.innerHTML = `<p class="session-slot-details">Свободных сеансов нет</p>`;
             return;
         }
-        elements.modal.sessionsList.innerHTML = '';
         sessions.forEach(s => {
             const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `<div class="list-item-title">${s.time}</div><div class="list-item-subtitle">${s.details}</div>`;
-            elements.modal.sessionsList.appendChild(item);
+            item.className = 'session-slot';
+            item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
+            grid.appendChild(item);
         });
     }
 
@@ -243,11 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await fetchAPI('/api/notify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            initData: tg.initData,
-                            location_id: state.selectedLocationId,
-                            date: state.selectedDateForModal
-                        })
+                        body: JSON.stringify({ initData: tg.initData, location_id: state.selectedLocationId, date: state.selectedDateForModal })
                     });
                     tg.close();
                 } catch(error) {
@@ -260,19 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-    elements.backBtn.addEventListener('click', () => {
-        if (state.currentScreen === 'calendar') {
-            showScreen('location');
-        }
-    });
+    elements.backBtn.addEventListener('click', () => { if (state.currentScreen === 'calendar') { showScreen('location'); } });
     tg.BackButton.onClick(() => elements.backBtn.click());
-
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
-    elements.modal.overlay.addEventListener('click', (e) => {
-        if (e.target === elements.modal.overlay) {
-            elements.modal.overlay.classList.remove('visible');
-        }
-    });
+    elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) { elements.modal.overlay.classList.remove('visible'); } });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
 
     // --- ЗАПУСК ПРИЛОЖЕНИЯ ---

@@ -57,24 +57,27 @@ async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date:
     headers_with_auth = {**DEFAULT_HEADERS, 'Authorization': f'Bearer {YCLIENTS_TOKEN}'}
     aggregated_data = defaultdict(dict)
 
-    tasks = []
+    tasks_with_time = []
     for slot in slots:
         dt = slot.get('attributes', {}).get('datetime', '')
         if dt and dt.endswith(":00:00+03:00"):
             payload = {"context": {"location_id": int(location_id)},
                        "filter": {"datetime": dt, "records": [{"attendance_service_items": []}]}}
-            tasks.append(
-                asyncio.create_task(session.post(url_services, headers=headers_with_auth, json=payload, timeout=10)))
+            task = asyncio.create_task(session.post(url_services, headers=headers_with_auth, json=payload, timeout=10))
+            # ИЗМЕНЕНО: Сохраняем задачу вместе с ее временем
+            tasks_with_time.append((task, dt))
 
-    if not tasks: return {}
-    price_responses = await asyncio.gather(*tasks, return_exceptions=True)
+    if not tasks_with_time: return {}
 
-    for resp_or_exc in price_responses:
-        if isinstance(resp_or_exc, Exception):
-            logger.error(f"YCLIENTS_EXCEPTION: Ошибка в gather при запросе цен: {resp_or_exc}")
+    # Ожидаем выполнения всех задач
+    await asyncio.gather(*[t[0] for t in tasks_with_time], return_exceptions=True)
+
+    for task, time_iso in tasks_with_time:
+        if task.cancelled() or task.exception():
+            logger.error(f"YCLIENTS_EXCEPTION: Ошибка в gather при запросе цен: {task.exception()}")
             continue
 
-        resp = resp_or_exc
+        resp = task.result()
         if resp.status != 200:
             if resp.status == 401:
                 logger.warning(f"YCLIENTS: Ошибка 401 (Unauthorized). Токен авторизации, вероятно, истек.")
@@ -84,8 +87,8 @@ async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date:
 
         try:
             services_data = await resp.json()
-            time_iso = services_data.get('meta', {}).get('context', {}).get('datetime', 'N/A')
-            time_str = datetime.fromisoformat(time_iso).strftime('%H:%M') if time_iso != 'N/A' else 'N/A'
+            # ИЗМЕНЕНО: Используем сохраненное время, а не `meta` из ответа
+            time_str = datetime.fromisoformat(time_iso).strftime('%H:%M')
             for service in services_data.get('data', []):
                 if service.get('id') == service_id:
                     price = service.get('attributes', {}).get('price_min')

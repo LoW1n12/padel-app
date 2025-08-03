@@ -37,6 +37,7 @@ LOCATIONS_CONFIG = {
     'Лужники': {
         'api_type': 'vivacrm',
         'booking_link': 'https://moscowpdl.ru/#courtrental',
+        'description': 'Корты от MoscowPDL',
         'display_in_case': 'в Лужниках',
         'courts': {
             "Открытый корт": {
@@ -55,6 +56,7 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'booking_link': 'https://padelfriends.ru/moscow',
         'display_in_case': 'в Лужниках-2',
+        'description': 'Корты от Padel Friends',
         'company_id': 'b861100',
         'location_id': '804153',
         'courts': {
@@ -64,6 +66,7 @@ LOCATIONS_CONFIG = {
     },
     'Фили (Дело спорт)': {
         'api_type': 'yclients_fili',
+        'description': 'Корты от Lunda Padel',
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Дело спорт)',
         'company_id': "b911781",
@@ -75,6 +78,7 @@ LOCATIONS_CONFIG = {
     },
     'Фили (Звезда)': {
         'api_type': 'yclients_fili',
+        'description': 'Корты от Lunda Padel',
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Звезда)',
         'company_id': "b911781",
@@ -85,6 +89,7 @@ LOCATIONS_CONFIG = {
     },
     'Химки': {
         'api_type': 'yclients_fili',
+        'description': 'Корты от Lunda Padel',
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'в Химках',
         'company_id': "b911781",

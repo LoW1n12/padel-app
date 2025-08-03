@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 # ================== БЕЗОПАСНОСТЬ: ПРОВЕРКА ДАННЫХ TELEGRAM ==================
-
+# ... (код без изменений) ...
 def is_safe_data(init_data: str) -> (bool, dict):
     if not BOT_TOKEN:
         logger.error("WebApp Auth: BOT_TOKEN не найден, проверка невозможна.")
@@ -71,14 +71,24 @@ def auth_required(handler):
 # ================== ОБРАБОТЧИКИ API-ЭНДПОИНТОВ ==================
 
 async def get_locations(request):
+    """Возвращает список локаций для фронтенда."""
     logger.info("WebApp API: Получен запрос на /api/locations")
+
+    # ИЗМЕНЕНО: Логика формирования ответа
     locations_list = [
-        {"id": key, "name": value.get('display_in_case', key).replace("в ", "").replace("на ", ""), "description": key}
-        for key, value in LOCATIONS_CONFIG.items()]
+        {
+            "id": key,  # ID для запросов
+            "name": key,  # Основное название (жирный текст)
+            "description": value.get('description', '')  # Описание (серый текст)
+        }
+        for key, value in LOCATIONS_CONFIG.items()
+    ]
+
     logger.debug(f"WebApp API: Отправка {len(locations_list)} локаций.")
     return web.json_response({"locations": locations_list})
 
 
+# ... (остальной код файла webapp_server.py без изменений) ...
 async def get_calendar_data(request):
     location_id = request.query.get("location_id")
     logger.info(f"WebApp API: Получен запрос на /api/calendar для location_id='{location_id}'")
@@ -154,7 +164,6 @@ async def add_notification(request, user_data):
     return web.json_response({"status": "ok", "message": "Уведомление добавлено!"})
 
 
-# ================== НАСТРОЙКА И ЗАПУСК СЕРВЕРА ==================
 def setup_webapp_routes(app):
     app.router.add_get("/api/locations", get_locations)
     app.router.add_get("/api/calendar", get_calendar_data)

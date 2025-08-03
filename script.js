@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://modern-actors-show.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://hot-walls-relax.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 

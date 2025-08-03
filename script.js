@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://hungry-rice-glow.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://fresh-rings-beam.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -142,26 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const dayCell = document.createElement('div');
             const currentDate = new Date(year, month, day);
             dayCell.className = 'calendar-day';
-
-            // ИЗМЕНЕНО: Возвращаем span для корректного отображения стилей
             const span = document.createElement('span');
             span.textContent = day;
             dayCell.appendChild(span);
-
             if (currentDate >= today && currentDate < limitDate) {
                 dayCell.classList.add('is-future');
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                if (state.availableDates.has(fullDateStr)) {
-                    dayCell.classList.add('has-sessions');
-                }
+                if (state.availableDates.has(fullDateStr)) { dayCell.classList.add('has-sessions'); }
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            } else {
-                dayCell.classList.add('is-past');
-            }
-
-            if (currentDate.getTime() === today.getTime()) {
-                dayCell.classList.add('is-today');
-            }
+            } else { dayCell.classList.add('is-past'); }
+            if (currentDate.getTime() === today.getTime()) { dayCell.classList.add('is-today'); }
             grid.appendChild(dayCell);
         }
         instance.append(header, weekdays, grid);
@@ -173,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modal.dateHeader.textContent = new Date(dateStr.replace(/-/g, '/')).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
         elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
-
         try {
             const data = await fetchAPI(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`);
             renderSessions(data);
@@ -187,7 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = elements.modal.sessionsGrid;
         grid.innerHTML = '';
 
+        // ИЗМЕНЕНО: Добавляем/убираем класс для управления стилем
         if (data.sessions && data.sessions.length > 0) {
+            grid.classList.remove('empty');
             data.sessions.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'session-slot';
@@ -201,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.modal.bookingBtn.classList.add('hidden');
             }
         } else {
+            grid.classList.add('empty');
             grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;
             elements.modal.bookingBtn.classList.add('hidden');
         }

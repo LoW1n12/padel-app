@@ -66,24 +66,28 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; }
 .modal-header { display: flex; justify-content: center; align-items: center; position: relative; padding: 16px; border-bottom: 1px solid var(--tg-theme-bg-color); }
 .modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
 .close-button { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--tg-theme-hint-color); background: none; border: none; cursor: pointer; }
-.modal-body { padding: 16px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; } /* ИЗМЕНЕНО */
+.modal-body { padding: 16px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
 .modal-footer { padding: 16px; border-top: 1px solid var(--tg-theme-bg-color); display: flex; flex-direction: column; gap: 10px; }
 .action-button { border: none; border-radius: 12px; padding: 14px 20px; font-size: 17px; font-weight: 600; cursor: pointer; width: 100%; text-decoration: none; text-align: center; box-sizing: border-box; }
 .action-button.green { background-color: var(--green-color); color: white; }
 #add-notification-btn { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
 
-.sessions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+/* ИЗМЕНЕНО: Новая, более надежная логика центрирования */
+.sessions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    flex-grow: 1; /* Позволяет сетке растянуться на всю высоту modal-body */
+}
+
+/* Когда сеансов нет, превращаем сетку в flex-контейнер для центрирования */
+.sessions-grid.empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .session-slot { background-color: var(--tg-theme-bg-color); border-radius: 8px; padding: 12px; text-align: center; }
 .session-slot-time { font-size: 18px; font-weight: 600; margin-bottom: 4px; color: var(--tg-theme-text-color); }
 .session-slot-details { font-size: 12px; color: var(--tg-theme-hint-color); word-wrap: break-word; }
-
-/* ИЗМЕНЕНО: Новые стили для центрирования сообщения */
-.no-sessions-message {
-    flex-grow: 1; /* Занимает все доступное пространство */
-    display: flex;
-    justify-content: center; /* Центрирует по горизонтали */
-    align-items: center; /* Центрирует по вертикали */
-    text-align: center;
-    color: var(--tg-theme-hint-color);
-    min-height: 100px; /* Минимальная высота для корректного центрирования */
-}
+.no-sessions-message { color: var(--tg-theme-hint-color); }

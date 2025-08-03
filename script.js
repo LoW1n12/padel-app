@@ -137,11 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
         limitDate.setHours(0, 0, 0, 0);
         let firstDayOfWeek = new Date(year, month, 1).getDay();
         if (firstDayOfWeek === 0) firstDayOfWeek = 7;
-        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day"></div>`; }
+        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`; }
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             const currentDate = new Date(year, month, day);
             dayCell.className = 'calendar-day';
+
+            // ИЗМЕНЕНО: Возвращаем span для корректного отображения стилей
+            const span = document.createElement('span');
+            span.textContent = day;
+            dayCell.appendChild(span);
+
             if (currentDate >= today && currentDate < limitDate) {
                 dayCell.classList.add('is-future');
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -149,9 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     dayCell.classList.add('has-sessions');
                 }
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
+            } else {
+                dayCell.classList.add('is-past');
             }
-            if (currentDate.getTime() === today.getTime()) { dayCell.classList.add('is-today'); }
-            dayCell.textContent = day;
+
+            if (currentDate.getTime() === today.getTime()) {
+                dayCell.classList.add('is-today');
+            }
             grid.appendChild(dayCell);
         }
         instance.append(header, weekdays, grid);
@@ -184,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
                 grid.appendChild(item);
             });
-            // Показываем кнопку "Забронировать", если есть ссылка
             if (data.booking_link) {
                 elements.modal.bookingBtn.href = data.booking_link;
                 elements.modal.bookingBtn.classList.remove('hidden');
@@ -192,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.modal.bookingBtn.classList.add('hidden');
             }
         } else {
-            // Если сеансов нет, показываем сообщение и скрываем кнопку бронирования
             grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;
             elements.modal.bookingBtn.classList.add('hidden');
         }

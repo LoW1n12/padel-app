@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://plenty-jeans-deny.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://true-wasps-drive.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 

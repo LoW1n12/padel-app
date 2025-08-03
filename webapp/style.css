@@ -8,12 +8,9 @@
     --tg-theme-secondary-bg-color: var(--tg-secondary-bg-color, #f0f3f8);
     --tg-viewport-height: var(--tg-viewport-stable-height, 100vh);
 
-    /* Дополнительные цвета для темной темы */
+    /* Дополнительные цвета */
     --green-color: #34C759;
 }
-
-/* Принудительная темная тема для отладки в браузере */
-/* html[theme='dark'] { ... } */
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
@@ -51,18 +48,53 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; }
 .calendar-header { text-align: center; font-weight: 600; margin-bottom: 12px; }
 .weekdays-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; color: var(--tg-theme-hint-color); margin-bottom: 8px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-.calendar-day { font-size: 16px; height: 42px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: var(--tg-theme-hint-color); }
+
+/* ИЗМЕНЕНО: Стили календаря возвращены к версии с точкой */
+.calendar-day { font-size: 16px; height: 42px; display: flex; justify-content: center; align-items: center; position: relative; border-radius: 50%; color: var(--tg-theme-hint-color); cursor: pointer; }
+.calendar-day.is-past { color: #8e8e93; opacity: 0.6; pointer-events: none; } /* Для дней, которые неактивны */
+.calendar-day.is-placeholder { visibility: hidden; }
 .calendar-day.is-future { color: var(--tg-theme-text-color); }
-.calendar-day.has-sessions { cursor: pointer; border: 1px solid var(--tg-theme-button-color); }
-.calendar-day.has-sessions:active { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
-.calendar-day.is-today { font-weight: bold; border: 2px solid var(--tg-theme-button-color); }
+
+.calendar-day.has-sessions::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: var(--tg-theme-button-color);
+    border-radius: 50%;
+}
+.calendar-day.is-today span {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color) !important;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.calendar-day.is-today.has-sessions::after {
+    background-color: var(--tg-theme-button-text-color);
+}
 
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
 .modal-overlay.visible { opacity: 1; visibility: visible; }
 .modal-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
 .modal-overlay.visible .modal-content { transform: translateY(0); }
-.modal-header { padding: 16px; text-align: center; position: relative; border-bottom: 1px solid var(--tg-theme-bg-color); }
+
+/* ИЗМЕНЕНО: Заголовок модального окна теперь центрируется через flexbox */
+.modal-header {
+    display: flex;
+    justify-content: center; /* Центрирует h3 */
+    align-items: center;
+    position: relative;
+    padding: 16px;
+    border-bottom: 1px solid var(--tg-theme-bg-color);
+}
 .modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
 .close-button { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--tg-theme-hint-color); background: none; border: none; cursor: pointer; }
 .modal-body { padding: 16px; overflow-y: auto; }

@@ -1,16 +1,12 @@
-// webapp/script.js
-
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://true-wasps-drive.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АКТУАЛЬНЫЙ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://hungry-rice-glow.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
     tg.BackButton.hide();
-
-    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f0f3f8';
 
     // --- DOM ЭЛЕМЕНТЫ ---
     const elements = {
@@ -67,13 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideLoader() { elements.loader.classList.add('hidden'); }
 
     function updateHeader() {
-        if (state.currentScreen === 'location') {
-            elements.headerTitle.textContent = 'Локации';
-            tg.BackButton.hide();
-        } else if (state.currentScreen === 'calendar') {
-            elements.headerTitle.textContent = state.selectedLocationName;
-            tg.BackButton.show();
-        }
+        elements.headerTitle.textContent = state.currentScreen === 'location' ? 'Локации' : state.selectedLocationName;
+        state.currentScreen === 'calendar' ? tg.BackButton.show() : tg.BackButton.hide();
     }
 
     async function init() {
@@ -146,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         limitDate.setHours(0, 0, 0, 0);
         let firstDayOfWeek = new Date(year, month, 1).getDay();
         if (firstDayOfWeek === 0) firstDayOfWeek = 7;
-        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`; }
+        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day"></div>`; }
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             const currentDate = new Date(year, month, day);
@@ -156,13 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 if (state.availableDates.has(fullDateStr)) {
                     dayCell.classList.add('has-sessions');
-                    dayCell.addEventListener('click', () => onDateClick(fullDateStr));
                 }
+                dayCell.addEventListener('click', () => onDateClick(fullDateStr));
             }
-            const span = document.createElement('span');
-            span.textContent = day;
-            dayCell.appendChild(span);
             if (currentDate.getTime() === today.getTime()) { dayCell.classList.add('is-today'); }
+            dayCell.textContent = day;
             grid.appendChild(dayCell);
         }
         instance.append(header, weekdays, grid);
@@ -177,31 +166,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const data = await fetchAPI(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`);
-            renderSessions(data.sessions);
+            renderSessions(data);
+        } catch (error) {
+            elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки сеансов</p>`;
+            elements.modal.bookingBtn.classList.add('hidden');
+        }
+    }
+
+    function renderSessions(data) {
+        const grid = elements.modal.sessionsGrid;
+        grid.innerHTML = '';
+
+        if (data.sessions && data.sessions.length > 0) {
+            data.sessions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'session-slot';
+                item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
+                grid.appendChild(item);
+            });
+            // Показываем кнопку "Забронировать", если есть ссылка
             if (data.booking_link) {
                 elements.modal.bookingBtn.href = data.booking_link;
                 elements.modal.bookingBtn.classList.remove('hidden');
             } else {
                 elements.modal.bookingBtn.classList.add('hidden');
             }
-        } catch (error) {
-            elements.modal.sessionsGrid.innerHTML = `<p class="session-slot-details">Ошибка загрузки сеансов</p>`;
+        } else {
+            // Если сеансов нет, показываем сообщение и скрываем кнопку бронирования
+            grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;
+            elements.modal.bookingBtn.classList.add('hidden');
         }
-    }
-
-    function renderSessions(sessions) {
-        const grid = elements.modal.sessionsGrid;
-        grid.innerHTML = '';
-        if (!sessions || sessions.length === 0) {
-            grid.innerHTML = `<p class="session-slot-details">Свободных сеансов нет</p>`;
-            return;
-        }
-        sessions.forEach(s => {
-            const item = document.createElement('div');
-            item.className = 'session-slot';
-            item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
-            grid.appendChild(item);
-        });
     }
 
     async function addNotification() {

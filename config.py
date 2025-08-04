@@ -38,6 +38,7 @@ LOCATIONS_CONFIG = {
         'api_type': 'vivacrm',
         'booking_link': 'https://moscowpdl.ru/#courtrental',
         'description': 'Корты от MoscowPDL',
+        'coords': [55.712837, 37.564221],
         'display_in_case': 'в Лужниках',
         'courts': {
             "Открытый корт": {
@@ -57,6 +58,7 @@ LOCATIONS_CONFIG = {
         'booking_link': 'https://padelfriends.ru/moscow',
         'display_in_case': 'в Лужниках-2',
         'description': 'Корты от Padel Friends',
+        'coords': [55.716468, 37.552248],
         'company_id': 'b861100',
         'location_id': '804153',
         'courts': {
@@ -67,6 +69,7 @@ LOCATIONS_CONFIG = {
     'Фили (Дело спорт)': {
         'api_type': 'yclients_fili',
         'description': 'Корты от Lunda Padel',
+        'coords': [55.748242, 37.497522],
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Дело спорт)',
         'company_id': "b911781",
@@ -79,6 +82,7 @@ LOCATIONS_CONFIG = {
     'Фили (Звезда)': {
         'api_type': 'yclients_fili',
         'description': 'Корты от Lunda Padel',
+        'coords': [55.741579, 37.468123],
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Звезда)',
         'company_id': "b911781",
@@ -87,77 +91,10 @@ LOCATIONS_CONFIG = {
             'Корт': {'service_id': '12616669'}
         }
     },
-    'Химки': {
-        'api_type': 'yclients_fili',
-        'description': 'Корты от Lunda Padel',
-        'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
-        'display_in_case': 'в Химках',
-        'company_id': "b911781",
-        'location_id': '820948',
-        'courts': {
-            'Корт для 2-х': {'service_id': '12077982'},
-            'Корт для 4-х': {'service_id': '11995111'},
-            'Ultra корт': {'service_id': '11995098'}
-        }
-    },
-    'Долгопрудный': {
-        'api_type': 'vivacrm',
-        'booking_link': 'https://paripadel.ru/admiral#booking',
-        'description': 'Корты от Pari в яхт-клубе',
-        'display_in_case': 'в Долгопрудном',
-        'courts': {
-            "Закрытый корт": {
-                "api_url": "https://api.vivacrm.ru/end-user/api/v1/ucYTIM/products/master-services/bc7ce7e6-40c3-4c23-885a-ac0bf38e90cc/timeslots",
-                "studioId": "a20eac9b-0e7e-4d84-9888-52d904feb74e",
-                "subServiceIds": ["2d8a66d5-cd3b-4154-b9f7-a54b0f14cad3"]
-            }
-        }
-    },
-    'Сколково': {
-        'api_type': 'vivacrm',
-        'booking_link': 'https://padlhub.ru/padel_skolkovo',
-        'description': 'Корты от Академии Будущего',
-        'display_in_case': 'в Сколково',
-        'courts': {
-            "Закрытый корт": {
-                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
-                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
-                "subServiceIds": ["96d2179a-5a96-41bd-a0c9-1df9e5890e16"]
-            },
-            "Закрытый корт 1x1": {
-                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
-                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
-                "subServiceIds": ["918f6a0c-d082-4d97-b8f5-4ff0d9530c6c"]
-            }
-        }
-    },
-    # 'Долгопрудный': {
-    #     'api_type': 'vivacrm',
-    #     'booking_link': 'https://paripadel.ru/admiral#booking',
-    #     'description': 'Корты от Академии Будущего',
-    #     'display_in_case': 'в Долгопрудном',
-    #     'courts': {
-    #         "Закрытый корт": {
-    #             "api_url": "https://api.vivacrm.ru/end-user/api/v1/ucYTIM/products/master-services/bc7ce7e6-40c3-4c23-885a-ac0bf38e90cc/timeslots",
-    #             "studioId": "a20eac9b-0e7e-4d84-9888-52d904feb74e",
-    #             "subServiceIds": ["2d8a66d5-cd3b-4154-b9f7-a54b0f14cad3"]
-    #         }
-    #     }
-    # },
-    'Мытищи': {
-        'api_type': 'yclients_fili',
-        'description': 'Корты от A33',
-        'booking_link': 'https://b918666.yclients.com/company/855029/personal/select-time?o=m-1',
-        'display_in_case': 'в Мытищах',
-        'company_id': "b918666",
-        'location_id': '855029',
-        'courts': {
-            'Открытый корт': {'service_id': '15554204'}
-        }
-    },
     'Терехово': {
         'api_type': 'yclients_fili',
         'description': 'Корты от Академии Будущего',
+        'coords': [55.743714, 37.460835],
         'booking_link': 'https://n1165596.yclients.com/company/1149911',
         'display_in_case': 'в Терехово',
         'company_id': "n1165596",
@@ -173,6 +110,7 @@ LOCATIONS_CONFIG = {
     'Нагатинская': {
         'api_type': 'yclients_fili',
         'description': 'Корты от Академии Будущего',
+        'coords': [55.683397, 37.632922],
         'booking_link': 'https://n1165596.yclients.com/company/1109937/',
         'display_in_case': 'на Нагатинской',
         'company_id': 'n1165596',
@@ -185,9 +123,82 @@ LOCATIONS_CONFIG = {
             'Обычный корт 5': {'service_id': '16928802', 'staff_id': '3409827', 'court_group_name': 'Закрытый корт'},
             'Обычный корт 6': {'service_id': '16928802', 'staff_id': '3451620', 'court_group_name': 'Закрытый корт'},
             'Ультра корт': {'service_id': '16938258', 'staff_id': '3451630', 'court_group_name': 'Ультра корт'},
-            'Корт 1x1 1': {'service_id': '16938218', 'staff_id': '3451642', 'court_group_name': 'Корт 1 на 1'},
-            'Корт 1x1 2': {'service_id': '16938218', 'staff_id': '3533948', 'court_group_name': 'Корт 1 на 1'},
+            'Корт 1x1 1': {'service_id': '16938218', 'staff_id': '3451642', 'court_group_name': 'Корт 1x1'},
+            'Корт 1x1 2': {'service_id': '16938218', 'staff_id': '3533948', 'court_group_name': 'Корт 1x1'},
         }
-    }
+    },
+    'Сколково': {
+        'api_type': 'vivacrm',
+        'booking_link': 'https://padlhub.ru/padel_skolkovo',
+        'description': 'Корты от Академии Будущего',
+        'coords': [55.704218, 37.403130],
+        'display_in_case': 'в Сколково',
+        'courts': {
+            "Закрытый корт": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
+                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
+                "subServiceIds": ["96d2179a-5a96-41bd-a0c9-1df9e5890e16"]
+            },
+            "Корт 1x1": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
+                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
+                "subServiceIds": ["918f6a0c-d082-4d97-b8f5-4ff0d9530c6c"]
+            }
+        }
+    },
+    'Ясенево': {
+        'api_type': 'vivacrm',
+        'booking_link': 'https://padlhub.ru/padl_yas',
+        'description': 'Корты от Академии Будущего',
+        'coords': [55.601745, 37.536140],
+        'display_in_case': 'в Ясенево',
+        'courts': {
+            "Закрытый корт": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/d9a5061a-e027-4960-9029-4bf5ec8a0c64/timeslots",
+                "studioId": "588b6151-f4f5-47d9-9449-80edf8cbc748",
+                "subServiceIds": ["2689586b-e7f6-4389-bdd2-5c1a35d4c0e7"]
+            }
+        }
+    },
+    'Химки': {
+        'api_type': 'yclients_fili',
+        'description': 'Корты от Lunda Padel',
+        'coords': [55.880989, 37.450331],
+        'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
+        'display_in_case': 'в Химках',
+        'company_id': "b911781",
+        'location_id': '820948',
+        'courts': {
+            'Корт для 2-х': {'service_id': '12077982'},
+            'Корт для 4-х': {'service_id': '11995111'},
+            'Ultra корт': {'service_id': '11995098'}
+        }
+    },
+    'Долгопрудный': {
+        'api_type': 'vivacrm',
+        'booking_link': 'https://paripadel.ru/admiral#booking',
+        'description': 'Корты от Pari в яхт-клубе',
+        'coords': [55.969227, 37.536880],
+        'display_in_case': 'в Долгопрудном',
+        'courts': {
+            "Закрытый корт": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/ucYTIM/products/master-services/bc7ce7e6-40c3-4c23-885a-ac0bf38e90cc/timeslots",
+                "studioId": "a20eac9b-0e7e-4d84-9888-52d904feb74e",
+                "subServiceIds": ["2d8a66d5-cd3b-4154-b9f7-a54b0f14cad3"]
+            }
+        }
+    },
+    'Мытищи': {
+        'api_type': 'yclients_fili',
+        'description': 'Корты от A33',
+        'coords': [55.891536, 37.710010],
+        'booking_link': 'https://b918666.yclients.com/company/855029/personal/select-time?o=m-1',
+        'display_in_case': 'в Мытищах',
+        'company_id': "b918666",
+        'location_id': '855029',
+        'courts': {
+            'Открытый корт': {'service_id': '15554204'}
+        }
+    },
 
 }

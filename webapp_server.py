@@ -114,7 +114,7 @@ def auth_required(handler):
 async def get_locations(request):
     """Возвращает список локаций для фронтенда."""
     logger.info("WebApp API: Получен запрос на /api/locations")
-    locations_list = [{"id": key, "name": key, "description": value.get('description', '')} for key, value in
+    locations_list = [{"id": key, "name": key, "description": value.get('description', ''),"coords": value.get('coords', [0, 0])} for key, value in
                       LOCATIONS_CONFIG.items()]
     return web.json_response({"locations": locations_list})
 

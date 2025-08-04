@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://rare-states-sin.loca.lt";
+    const API_BASE_URL = "https://tricky-books-run.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -29,9 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         modal: {
             overlay: document.getElementById('detail-modal'),
+            content: document.getElementById('detail-modal').querySelector('.modal-content'),
+            backBtn: document.getElementById('modal-back-btn'),
+            closeBtn: document.getElementById('close-modal-btn'),
             dateHeader: document.getElementById('modal-date-header'),
             sessionsGrid: document.getElementById('sessions-grid'),
-            closeBtn: document.getElementById('close-modal-btn'),
             notifyBtn: document.getElementById('add-notification-btn'),
             bookingBtn: document.getElementById('booking-link-btn'),
         }
@@ -164,8 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         elements.calendarInPanel.appendChild(createCalendarInstance(firstMonth));
-        const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-        elements.calendarInPanel.appendChild(createCalendarInstance(secondMonth));
+
+        const limitDate = new Date();
+        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
+
+        if (limitDate.getMonth() !== today.getMonth()) {
+            const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            elements.calendarInPanel.appendChild(createCalendarInstance(secondMonth));
+        }
     }
 
     function createCalendarInstance(dateForMonth) {
@@ -185,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const limitDate = new Date(today);
+        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
 
         let firstDayOfWeek = new Date(year, month, 1).getDay();
         if (firstDayOfWeek === 0) firstDayOfWeek = 7;
@@ -197,12 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
             dayCell.className = 'calendar-day';
             dayCell.innerHTML = `<span>${day}</span>`;
 
-            if (currentDate >= today) {
+            if (currentDate >= today && currentDate < limitDate) {
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 if (state.availableDates.has(fullDateStr)) dayCell.classList.add('has-sessions');
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
             } else {
-                dayCell.classList.add('is-past');
+                dayCell.classList.add('is-disabled');
             }
             if (currentDate.getTime() === today.getTime()) dayCell.classList.add('is-today');
 
@@ -268,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.showListBtn.addEventListener('click', () => showView('list'));
     elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
+    elements.modal.backBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });

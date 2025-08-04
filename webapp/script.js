@@ -79,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showLoader() { elements.loader.classList.remove('hidden'); }
-    function hideLoader() { elements.loader.classList.add('hidden'); }
+    function showLoader() { document.getElementById('loader-container').classList.remove('hidden'); }
+    function hideLoader() { document.getElementById('loader-container').classList.add('hidden'); }
 
     function updateHeader() {
         elements.headerTitle.textContent = state.currentView === 'calendar' ? state.selectedLocationName : 'Локации';
@@ -112,27 +112,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initMap() {
         if (state.map) return;
-        state.map = L.map(elements.mapContainer).setView([55.751244, 37.618423], 10);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(state.map);
-        state.locations.forEach(loc => {
-            if (loc.coords && loc.coords[0] !== 0) {
-                const marker = L.marker(loc.coords).addTo(state.map);
-                marker.bindPopup(`<div class="popup-title">${loc.name}</div><a class="popup-link" data-location-id="${loc.id}">Выбрать</a>`);
-            }
-        });
-        state.map.on('popupopen', (e) => {
-            const link = e.popup.getElement().querySelector('.popup-link');
-            link?.addEventListener('click', (event) => {
-                const locationId = event.target.dataset.locationId;
-                const selectedLoc = state.locations.find(l => l.id === locationId);
-                if (selectedLoc) {
-                    state.map.closePopup();
-                    onLocationSelect(selectedLoc);
+        ymaps.ready(() => {
+            state.map = new ymaps.Map(elements.mapContainer, {
+                center: [55.751244, 37.618423],
+                zoom: 10,
+                controls: ['zoomControl']
+            });
+            state.locations.forEach(loc => {
+                if (loc.coords && loc.coords[0] !== 0) {
+                    const placemark = new ymaps.Placemark(loc.coords, {
+                        balloonContentHeader: `<div class="popup-title">${loc.name}</div>`,
+                        balloonContentFooter: `<a href="#" class="popup-link" data-location-id="${loc.id}">Выбрать</a>`
+                    }, {
+                        preset: 'islands#sportIcon',
+                        iconColor: tg.themeParams.button_color || '#007aff'
+                    });
+                    state.map.geoObjects.add(placemark);
                 }
+            });
+            state.map.events.add('balloonopen', (e) => {
+                const link = e.get('balloon').getElement().querySelector('.popup-link');
+                link?.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const locationId = event.target.dataset.locationId;
+                    const selectedLoc = state.locations.find(l => l.id === locationId);
+                    if (selectedLoc) {
+                        state.map.balloon.close();
+                        onLocationSelect(selectedLoc);
+                    }
+                });
             });
         });
     }

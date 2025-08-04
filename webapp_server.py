@@ -5,11 +5,11 @@ import hmac
 import hashlib
 import json
 import logging
-import time  # ИЗМЕНЕНО: Добавлен импорт time
+import time
 from datetime import date, timedelta, datetime
 from functools import wraps
 from urllib.parse import parse_qsl
-from collections import defaultdict  # ИЗМЕНЕНО: Добавлен импорт defaultdict
+from collections import defaultdict
 
 from aiohttp import web
 import aiohttp_cors
@@ -24,9 +24,7 @@ from utils import format_date_short
 logger = logging.getLogger(__name__)
 
 # ================== УРОВЕНЬ ЗАЩИТЫ 1: ОГРАНИЧЕНИЕ ЧАСТОТЫ ЗАПРОСОВ ==================
-# Сохраняем время последнего запроса для каждого пользователя
 user_last_request_time = defaultdict(float)
-# Разрешаем 1 запрос в 2 секунды
 RATE_LIMIT_SECONDS = 2
 
 
@@ -37,7 +35,7 @@ def rate_limited(handler):
     async def wrapper(request, user_data):
         user_id = user_data.get("id")
         if not user_id:
-            return await handler(request, user_data)  # Пропускаем, если нет user_id
+            return await handler(request, user_data)
 
         current_time = time.time()
         last_request_time = user_last_request_time.get(user_id, 0)
@@ -64,11 +62,9 @@ def is_safe_data(init_data: str) -> (bool, dict):
 
     if "hash" not in parsed_data: return False, {}
 
-    # Проверка срока годности: не принимаем данные старше 1 часа
     try:
-        auth_date = int(parsed_data.get('auth_date', 0))
-        if time.time() - auth_date > 3600:
-            logger.warning(f"WebApp Auth: Получены устаревшие данные (auth_date: {auth_date}). Отказ.")
+        if time.time() - int(parsed_data.get('auth_date', 0)) > 3600:
+            logger.warning(f"WebApp Auth: Получены устаревшие данные (auth_date). Отказ.")
             return False, {}
     except (ValueError, TypeError):
         return False, {}
@@ -80,8 +76,7 @@ def is_safe_data(init_data: str) -> (bool, dict):
 
     if calculated_hash == hash_from_telegram:
         try:
-            user_data = json.loads(parsed_data.get("user", "{}"))
-            return True, user_data
+            return True, json.loads(parsed_data.get("user", "{}"))
         except json.JSONDecodeError:
             return False, {}
 
@@ -109,7 +104,6 @@ def auth_required(handler):
         if not is_safe:
             return web.json_response({"error": "Invalid or outdated authorization data"}, status=403)
 
-        # Передаем user_data в обработчик
         return await handler(request, user_data)
 
     return wrapper
@@ -117,8 +111,8 @@ def auth_required(handler):
 
 # ================== ОБРАБОТЧИКИ API-ЭНДПОИНТОВ ==================
 
-# Публичные эндпоинты не требуют защиты, т.к. не выполняют критичных действий
 async def get_locations(request):
+    """Возвращает список локаций для фронтенда."""
     logger.info("WebApp API: Получен запрос на /api/locations")
     locations_list = [{"id": key, "name": key, "description": value.get('description', '')} for key, value in
                       LOCATIONS_CONFIG.items()]
@@ -126,6 +120,7 @@ async def get_locations(request):
 
 
 async def get_calendar_data(request):
+    """Возвращает даты, на которые есть свободные сеансы."""
     location_id = request.query.get("location_id")
     if not location_id or location_id not in LOCATIONS_CONFIG:
         return web.json_response({"error": "location_id is required or invalid"}, status=400)
@@ -141,33 +136,59 @@ async def get_calendar_data(request):
 
 
 async def get_sessions_for_date(request):
+    """Возвращает сгруппированную информацию о сеансах."""
     location_id = request.query.get("location_id")
     date_str = request.query.get("date")
-    if not location_id or not date_str: return web.json_response({"error": "location_id and date are required"},
-                                                                 status=400)
+    if not location_id or not date_str:
+        return web.json_response({"error": "location_id and date are required"}, status=400)
 
     try:
         check_date = date.fromisoformat(date_str)
     except ValueError:
         return web.json_response({"error": "Invalid date format"}, status=400)
 
-    session = request.app['aiohttp_session']
-    availability = await fetch_availability_for_location_date(session, location_id, check_date)
-    sessions = [{"time": time_str,
-                 "details": " | ".join([f"{name} ({data['price']}₽)" for name, data in sorted(courts.items())])} for
-                time_str, courts in sorted(availability.items())]
+    availability = await fetch_availability_for_location_date(request.app['aiohttp_session'], location_id, check_date)
+    sessions = []
+
+    if availability:
+        location_config_data = LOCATIONS_CONFIG.get(location_id, {})
+
+        for time_str, courts in sorted(availability.items()):
+            grouped_details = defaultdict(int)
+            prices = {}
+
+            for court_name, court_data in courts.items():
+                court_config = location_config_data.get("courts", {}).get(court_name, {})
+                group_name = court_config.get("court_group_name", court_name)
+
+                price = court_data.get('price', 0)
+                group_key = (group_name, price)
+
+                grouped_details[group_key] += 1
+                if group_key not in prices:
+                    prices[group_key] = price
+
+            details_parts = []
+            for (group_name, price), count in grouped_details.items():
+                price_str = f"({int(price)}₽)"
+                part = f"{group_name} {price_str}"
+                if count > 1:
+                    part += f" - {count} шт"
+                details_parts.append(part)
+
+            sessions.append({"time": time_str, "details": " | ".join(sorted(details_parts))})
+
     booking_link = LOCATIONS_CONFIG.get(location_id, {}).get('booking_link', '')
     return web.json_response({"sessions": sessions, "booking_link": booking_link})
 
 
-# Защищенный эндпоинт, который меняет данные в БД
 @auth_required
-@rate_limited  # Применяем декоратор rate_limit к защищенному обработчику
+@rate_limited
 async def add_notification(request, user_data):
+    """Добавляет подписку на уведомления и отправляет подтверждение в чат."""
     try:
         body = await request.json()
         location_id, date_str = body.get("location_id"), body.get("date")
-        logger.info(f"WebApp API: /api/notify от user_id={user_data.get('id')} на {location_id} ({date_str})")
     except json.JSONDecodeError:
         return web.json_response({"error": "Invalid JSON"}, status=400)
 
@@ -176,11 +197,10 @@ async def add_notification(request, user_data):
     user_id = user_data.get("id")
     if not user_id: return web.json_response({"error": "Failed to identify user"}, status=400)
 
-    monitor_data = {"type": "specific", "value": date_str}
     court_types = sorted(list(LOCATIONS_CONFIG.get(location_id, {}).get("courts", {}).keys()))
     if not court_types: return web.json_response({"error": "Invalid location"}, status=400)
 
-    db.add_user_time(user_id, location_id, ANY_HOUR_PLACEHOLDER, court_types, monitor_data)
+    db.add_user_time(user_id, location_id, ANY_HOUR_PLACEHOLDER, court_types, {"type": "specific", "value": date_str})
     logger.info(f"WebApp API: Успешно добавлена подписка в БД для user_id={user_id}.")
 
     try:
@@ -193,15 +213,14 @@ async def add_notification(request, user_data):
         )
         await bot.send_message(chat_id=user_id, text=confirmation_message_html, parse_mode=ParseMode.HTML)
         logger.info(f"WebApp API: Отправлено подтверждение в чат для user_id={user_id}")
-    except TelegramError as e:
-        logger.error(f"WebApp API: Не удалось отправить сообщение для user_id={user_id}. Ошибка: {e}")
     except Exception as e:
-        logger.error(f"WebApp API: Непредвиденная ошибка при отправке сообщения: {e}", exc_info=True)
+        logger.error(f"WebApp API: Не удалось отправить сообщение: {e}", exc_info=True)
 
-    return web.json_response({"status": "ok", "message": "Уведомление добавлено!"})
+    return web.json_response({"status": "ok"})
 
 
 # ================== НАСТРОЙКА И ЗАПУСК СЕРВЕРА ==================
+
 def setup_webapp_routes(app):
     app.router.add_get("/api/locations", get_locations)
     app.router.add_get("/api/calendar", get_calendar_data)

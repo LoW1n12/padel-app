@@ -132,11 +132,11 @@ LOCATIONS_CONFIG = {
         'company_id': "n1165596",
         'location_id': '1149911',
         'courts': {
-            'Корт 1': {'service_id': '18999132', 'staff_id': '3801338'},
-            'Корт 2': {'service_id': '17302417', 'staff_id': '3497691'},
-            'Корт 3': {'service_id': '17302417', 'staff_id': '3497812'},
-            'Корт 4': {'service_id': '17302417', 'staff_id': '3497820'},
-            'Корт 5': {'service_id': '17302417', 'staff_id': '3497822'},
+            'Корт 1': {'service_id': '18999132', 'staff_id': '3801338', 'court_group_name': 'Закрытый корт'},
+            'Корт 2': {'service_id': '17302417', 'staff_id': '3497691', 'court_group_name': 'Закрытый корт'},
+            'Корт 3': {'service_id': '17302417', 'staff_id': '3497812', 'court_group_name': 'Закрытый корт'},
+            'Корт 4': {'service_id': '17302417', 'staff_id': '3497820', 'court_group_name': 'Закрытый корт'},
+            'Корт 5': {'service_id': '17302417', 'staff_id': '3497822', 'court_group_name': 'Закрытый корт'},
         }
     },
 

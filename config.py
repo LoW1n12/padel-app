@@ -139,5 +139,24 @@ LOCATIONS_CONFIG = {
             'Корт 5': {'service_id': '17302417', 'staff_id': '3497822', 'court_group_name': 'Закрытый корт'},
         }
     },
+    'Нагатинская': {
+        'api_type': 'yclients_fili',
+        'description': 'Корты от Академии Будущего',
+        'booking_link': 'https://n1165596.yclients.com/company/1109937/',
+        'display_in_case': 'на Нагатинской',
+        'company_id': 'ВАШ_COMPANY_ID',
+        'location_id': '1109937',
+        'courts': {
+            'Обычный корт 1': {'service_id': '18030932', 'staff_id': '3420308', 'court_group_name': 'Закрытый корт'},
+            'Обычный корт 2': {'service_id': '18030932', 'staff_id': '3441274', 'court_group_name': 'Закрытый корт'},
+            'Обычный корт 3': {'service_id': '16928802', 'staff_id': '3408240', 'court_group_name': 'Закрытый корт'},
+            'Обычный корт 4': {'service_id': '16928802', 'staff_id': '3394948', 'court_group_name': 'Закрытый корт'},
+            'Обычный корт 5': {'service_id': '16928802', 'staff_id': '3409827', 'court_group_name': 'Закрытый корт'},
+            'Обычный корт 6': {'service_id': '16928802', 'staff_id': '3451620', 'court_group_name': 'Закрытый корт'},
+            'Ультра корт': {'service_id': '16938258', 'staff_id': '3451630', 'court_group_name': 'Ультра корт'},
+            'Корт 1x1 1': {'service_id': '16938218', 'staff_id': '3451642', 'court_group_name': 'Корт 1 на 1'},
+            'Корт 1x1 2': {'service_id': '16938218', 'staff_id': '3533948', 'court_group_name': 'Корт 1 на 1'},
+        }
+    }
 
 }

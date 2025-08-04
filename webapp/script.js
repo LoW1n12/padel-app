@@ -91,7 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.map) return;
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
-                center: [55.751244, 37.618423], zoom: 10, controls: ['zoomControl']
+                center: [55.751244, 37.618423], zoom: 10,
+                // ИЗМЕНЕНО: Убираем все стандартные кнопки с карты
+                controls: []
+            }, {
+                // ИЗМЕНЕНО: Убираем кнопку "Открыть в Яндекс.Картах"
+                suppressMapOpenBlock: true
             });
             if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');
             const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');

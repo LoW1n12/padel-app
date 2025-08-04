@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tg.ready();
     tg.expand();
-    tg.BackButton.hide();
 
     const elements = {
         loader: document.getElementById('loader-container'),
         headerTitle: document.getElementById('header-title'),
-        backBtn: document.getElementById('back-btn'),
         viewSwitcher: document.getElementById('view-switcher'),
         showListBtn: document.getElementById('show-list-btn'),
         showMapBtn: document.getElementById('show-map-btn'),
@@ -22,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
         mapPanel: {
             overlay: document.getElementById('map-panel-overlay'),
             content: document.getElementById('map-location-panel'),
+            dragHandle: document.getElementById('panel-drag-handle'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
             selectBtn: document.getElementById('panel-select-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
             taxiBtn: document.getElementById('panel-taxi-btn'),
+            calendarContainer: document.getElementById('panel-calendar-container'),
         },
         modal: {
             overlay: document.getElementById('detail-modal'),
@@ -88,12 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'location-card';
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => {
-                state.selectedLocationId = loc.id;
-                state.selectedLocationName = loc.name;
-                // Вместо перехода на другой view, можно открыть панель с календарем
-                showMapLocationPanel(loc, true);
-            });
+            card.addEventListener('click', () => showMapLocationPanel(loc, true));
             elements.locationList.appendChild(card);
         });
     }
@@ -111,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const placemark = new ymaps.Placemark(loc.coords, {}, {
                         iconLayout: customMarkerLayout,
                         interactivityModel: 'default#transparent',
-                        iconShape: { type: 'Rectangle', coordinates: [[-16, -16], [16, 16]] }
+                        iconShape: { type: 'Rectangle', coordinates: [[-20, -20], [20, 20]] }
                     });
                     placemark.events.add('click', () => showMapLocationPanel(loc));
                     state.map.geoObjects.add(placemark);
@@ -125,6 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state.selectedLocationName = locData.name;
         elements.mapPanel.name.textContent = locData.name;
         elements.mapPanel.description.textContent = locData.description;
+
+        elements.mapPanel.content.classList.remove('expanded');
 
         const newSelectBtn = elements.mapPanel.selectBtn.cloneNode(true);
         elements.mapPanel.selectBtn.parentNode.replaceChild(newSelectBtn, elements.mapPanel.selectBtn);
@@ -159,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadAndRenderCalendarInPanel() {
-        elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height: 200px;"><div class="padel-loader"></div></div>';
+        elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
         try {
             const data = await fetchAPI(`/api/calendar?location_id=${state.selectedLocationId}`);
             state.availableDates = new Set(data.available_dates);
@@ -172,46 +169,53 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCalendarsInPanel() {
         elements.calendarInPanel.innerHTML = '';
         const today = new Date();
-        const firstMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        const limitDate = new Date(today);
-        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
-        elements.calendarInPanel.appendChild(createCalendarInstance(firstMonthDate));
-        if (limitDate.getMonth() !== today.getMonth()) {
-            const secondMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            elements.calendarInPanel.appendChild(createCalendarInstance(secondMonthDate));
-        }
+        const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        elements.calendarInPanel.appendChild(createCalendarInstance(firstMonth));
+        const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        elements.calendarInPanel.appendChild(createCalendarInstance(secondMonth));
     }
 
     function createCalendarInstance(dateForMonth) {
         const instance = document.createElement('div');
         instance.className = 'calendar-instance';
-        instance.innerHTML = `
-            <div class="calendar-header"><h2>${dateForMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2></div>
-            <div class="weekdays-grid">${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div>${d}</div>`).join('')}</div>
-            <div class="calendar-grid"></div>`;
-        const grid = instance.querySelector('.calendar-grid');
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        header.innerHTML = `<h2>${dateForMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
+        const weekdays = document.createElement('div');
+        weekdays.className = 'weekdays-grid';
+        weekdays.innerHTML = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div>${d}</div>`).join('');
+        const grid = document.createElement('div');
+        grid.className = 'calendar-grid';
+
         const year = dateForMonth.getFullYear();
         const month = dateForMonth.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
         let firstDayOfWeek = new Date(year, month, 1).getDay();
         if (firstDayOfWeek === 0) firstDayOfWeek = 7;
+
         for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`; }
+
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement('div');
             const currentDate = new Date(year, month, day);
             dayCell.className = 'calendar-day';
             dayCell.innerHTML = `<span>${day}</span>`;
+
             if (currentDate >= today) {
-                dayCell.classList.add('is-future');
                 const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 if (state.availableDates.has(fullDateStr)) dayCell.classList.add('has-sessions');
                 dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            } else dayCell.classList.add('is-past');
+            } else {
+                dayCell.classList.add('is-past');
+            }
             if (currentDate.getTime() === today.getTime()) dayCell.classList.add('is-today');
+
             grid.appendChild(dayCell);
         }
+        instance.append(header, weekdays, grid);
         return instance;
     }
 
@@ -270,14 +274,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     elements.showListBtn.addEventListener('click', () => showView('list'));
-    elements.showMapBtn.addEventListener('click', () => {
-        showView('map');
-        initMap();
-    });
+    elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
+
+    let startY;
+    elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        elements.mapPanel.content.style.transition = 'none';
+    }, { passive: true });
+    elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
+        }
+    }, { passive: true });
+    elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (endY - startY > 100) {
+            hideMapLocationPanel();
+        }
+        setTimeout(() => {
+            elements.mapPanel.content.style.transform = '';
+        }, 0);
+    });
 
     init();
 });

@@ -20849,3 +20849,36 @@ task: <Task pending name='Task-10248' coro=<RequestHandler.start() done, defined
 task: <Task pending name='Task-10250' coro=<RequestHandler.start() done, defined at C:\Users\geniy\PycharmProjects\parserpdl\.venv\Lib\site-packages\aiohttp\web_protocol.py:543> wait_for=<Future pending cb=[Task.task_wakeup()]>>
 2025-08-04 23:40:45,444 - asyncio - ERROR - Task was destroyed but it is pending!
 task: <Task pending name='Task-10252' coro=<RequestHandler.start() done, defined at C:\Users\geniy\PycharmProjects\parserpdl\.venv\Lib\site-packages\aiohttp\web_protocol.py:543> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+2025-08-04 23:40:46,315 - __main__ - INFO - Бот запускается...
+2025-08-04 23:40:46,451 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getMe "HTTP/1.1 200 OK"
+2025-08-04 23:40:46,452 - bot - INFO - --- Запуск post_init хука ---
+2025-08-04 23:40:46,452 - bot - INFO - --- Задача мониторинга успешно создана ---
+2025-08-04 23:40:46,452 - monitoring - INFO - --- Задача мониторинга запущена ---
+2025-08-04 23:40:46,453 - webapp_server - INFO - 🚀 Веб-сервер для Mini App запущен на http://0.0.0.0:8080
+2025-08-04 23:40:46,552 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/setChatMenuButton "HTTP/1.1 200 OK"
+2025-08-04 23:40:46,553 - bot - INFO - --- Кнопка меню для Web App успешно установлена ---
+2025-08-04 23:40:46,595 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/deleteWebhook "HTTP/1.1 200 OK"
+2025-08-04 23:40:46,596 - apscheduler.scheduler - INFO - Scheduler started
+2025-08-04 23:40:46,596 - telegram.ext.Application - INFO - Application started
+2025-08-04 23:40:52,836 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:40:52 +0300] "OPTIONS /api/locations HTTP/1.1" 200 297 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:40:53,649 - webapp_server - INFO - WebApp API: Получен запрос на /api/locations
+2025-08-04 23:40:53,649 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:40:53 +0300] "GET /api/locations HTTP/1.1" 200 2674 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:40:56,721 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:40:59,991 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:40:59 +0300] "OPTIONS /api/calendar?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE HTTP/1.1" 200 297 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:01,261 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:41:00 +0300] "GET /api/calendar?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE HTTP/1.1" 200 757 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:03,659 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:41:03 +0300] "OPTIONS /api/sessions?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE&date=2025-08-07 HTTP/1.1" 200 297 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:03,996 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:41:03 +0300] "GET /api/sessions?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE&date=2025-08-07 HTTP/1.1" 200 3420 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:06,765 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:12,449 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:41:12 +0300] "OPTIONS /api/sessions?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE&date=2025-08-08 HTTP/1.1" 200 297 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:12,794 - aiohttp.access - INFO - 127.0.0.1 [04/Aug/2025:23:41:12 +0300] "GET /api/sessions?location_id=%D0%A1%D0%BA%D0%BE%D0%BB%D0%BA%D0%BE%D0%B2%D0%BE&date=2025-08-08 HTTP/1.1" 200 3606 "https://low1n12.github.io/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-08-04 23:41:16,806 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:26,857 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:36,901 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:46,958 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:56,999 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:41:59,942 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:42:00,112 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/sendMessage "HTTP/1.1 200 OK"
+2025-08-04 23:42:10,003 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:42:20,045 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:42:30,089 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"
+2025-08-04 23:42:40,137 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8250682176:AAFpM2vl6IaQzSQfJo0zG4g-GhiaM0zBXj8/getUpdates "HTTP/1.1 200 OK"

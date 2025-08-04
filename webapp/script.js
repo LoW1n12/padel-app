@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://chilly-pugs-rush.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://eighty-radios-punch.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
         locationList: document.getElementById('location-list'),
         mapContainer: document.getElementById('map'),
         calendarWrapper: document.getElementById('calendar-wrapper'),
+        mapPanel: {
+            overlay: document.getElementById('map-panel-overlay'),
+            content: document.getElementById('map-location-panel'),
+            name: document.getElementById('panel-location-name'),
+            description: document.getElementById('panel-location-description'),
+            selectBtn: document.getElementById('panel-select-btn'),
+            routeBtn: document.getElementById('panel-route-btn'),
+            taxiBtn: document.getElementById('panel-taxi-btn'),
+        },
         modal: {
             overlay: document.getElementById('detail-modal'),
             dateHeader: document.getElementById('modal-date-header'),
@@ -49,10 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ['list', 'map', 'calendar'].forEach(v => {
             elements[`${v}View`].classList.toggle('active', v === viewName);
         });
-
         elements.showListBtn.classList.toggle('active', viewName === 'list');
         elements.showMapBtn.classList.toggle('active', viewName === 'map');
-
         if (viewName === 'calendar') {
             elements.viewSwitcher.classList.add('hidden');
             tg.BackButton.show();
@@ -114,35 +121,62 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.map) return;
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
-                center: [55.751244, 37.618423],
-                zoom: 10,
-                controls: ['zoomControl']
+                center: [55.751244, 37.618423], zoom: 10, controls: ['zoomControl']
             });
+            if (tg.colorScheme === 'dark') {
+                elements.mapContainer.classList.add('dark-theme');
+            }
+            const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');
             state.locations.forEach(loc => {
                 if (loc.coords && loc.coords[0] !== 0) {
                     const placemark = new ymaps.Placemark(loc.coords, {
-                        balloonContentHeader: `<div class="popup-title">${loc.name}</div>`,
-                        balloonContentFooter: `<a href="#" class="popup-link" data-location-id="${loc.id}">Выбрать</a>`
+                        locationData: loc
                     }, {
-                        preset: 'islands#sportIcon',
-                        iconColor: tg.themeParams.button_color || '#007aff'
+                        iconLayout: customMarkerLayout,
+                        iconShape: { type: 'Rectangle', coordinates: [[-16, -16], [16, 16]] }
+                    });
+                    placemark.events.add('click', (e) => {
+                        const marker = e.get('target');
+                        const data = marker.properties.get('locationData');
+                        showMapLocationPanel(data);
                     });
                     state.map.geoObjects.add(placemark);
                 }
             });
-            state.map.events.add('balloonopen', (e) => {
-                const link = e.get('balloon').getElement().querySelector('.popup-link');
-                link?.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    const locationId = event.target.dataset.locationId;
-                    const selectedLoc = state.locations.find(l => l.id === locationId);
-                    if (selectedLoc) {
-                        state.map.balloon.close();
-                        onLocationSelect(selectedLoc);
-                    }
-                });
-            });
         });
+    }
+
+    function showMapLocationPanel(locData) {
+        elements.mapPanel.name.textContent = locData.name;
+        elements.mapPanel.description.textContent = locData.description;
+
+        const newSelectBtn = elements.mapPanel.selectBtn.cloneNode(true);
+        elements.mapPanel.selectBtn.parentNode.replaceChild(newSelectBtn, elements.mapPanel.selectBtn);
+        elements.mapPanel.selectBtn = newSelectBtn;
+
+        const newRouteBtn = elements.mapPanel.routeBtn.cloneNode(true);
+        elements.mapPanel.routeBtn.parentNode.replaceChild(newRouteBtn, elements.mapPanel.routeBtn);
+        elements.mapPanel.routeBtn = newRouteBtn;
+
+        const newTaxiBtn = elements.mapPanel.taxiBtn.cloneNode(true);
+        elements.mapPanel.taxiBtn.parentNode.replaceChild(newTaxiBtn, elements.mapPanel.taxiBtn);
+        elements.mapPanel.taxiBtn = newTaxiBtn;
+
+        elements.mapPanel.selectBtn.addEventListener('click', () => {
+            hideMapLocationPanel();
+            onLocationSelect(locData);
+        });
+        elements.mapPanel.routeBtn.addEventListener('click', () => {
+            tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`);
+        });
+        elements.mapPanel.taxiBtn.addEventListener('click', () => {
+            tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`);
+        });
+        elements.mapPanel.overlay.classList.add('visible');
+    }
+
+    function hideMapLocationPanel() {
+        elements.mapPanel.overlay.classList.remove('visible');
     }
 
     async function onLocationSelect(location) {
@@ -278,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.showMapBtn.addEventListener('click', () => {
         showView('map');
         initMap();
-        setTimeout(() => state.map?.invalidateSize(), 100);
     });
     tg.BackButton.onClick(() => {
         showView('list');
@@ -287,6 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.backBtn.addEventListener('click', () => tg.BackButton.onClick());
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) { elements.modal.overlay.classList.remove('visible'); } });
+    elements.mapPanel.overlay.addEventListener('click', (e) => {
+        if (e.target === elements.mapPanel.overlay) { hideMapLocationPanel(); }
+    });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
 
     // --- ЗАПУСК ПРИЛОЖЕНИЯ ---

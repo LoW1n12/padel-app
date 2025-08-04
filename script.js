@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- НАСТРОЙКИ И ИНИЦИАЛИЗАЦИЯ ---
-    const API_BASE_URL = "https://spicy-things-follow.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
+    const API_BASE_URL = "https://chilly-pugs-rush.loca.lt"; // !!! ЗАМЕНИТЕ НА ВАШ АДРЕС ОТ LOCALTUNNEL !!!
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -13,8 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loader: document.getElementById('loader-container'),
         headerTitle: document.getElementById('header-title'),
         backBtn: document.getElementById('back-btn'),
-        screens: { location: document.getElementById('location-screen'), calendar: document.getElementById('calendar-screen') },
+        viewSwitcher: document.getElementById('view-switcher'),
+        showListBtn: document.getElementById('show-list-btn'),
+        showMapBtn: document.getElementById('show-map-btn'),
+        listView: document.getElementById('list-view'),
+        mapView: document.getElementById('map-view'),
+        calendarView: document.getElementById('calendar-view'),
         locationList: document.getElementById('location-list'),
+        mapContainer: document.getElementById('map'),
         calendarWrapper: document.getElementById('calendar-wrapper'),
         modal: {
             overlay: document.getElementById('detail-modal'),
@@ -28,16 +34,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- УПРАВЛЕНИЕ СОСТОЯНИЕМ ---
     let state = {
-        currentScreen: 'location',
+        currentView: 'list',
+        locations: [],
+        map: null,
         selectedLocationId: null,
         selectedLocationName: '',
         availableDates: new Set(),
         selectedDateForModal: null,
     };
 
+    // --- УПРАВЛЕНИЕ ВИДАМИ (ЭКРАНАМИ) ---
+    function showView(viewName) {
+        state.currentView = viewName;
+        ['list', 'map', 'calendar'].forEach(v => {
+            elements[`${v}View`].classList.toggle('active', v === viewName);
+        });
+
+        elements.showListBtn.classList.toggle('active', viewName === 'list');
+        elements.showMapBtn.classList.toggle('active', viewName === 'map');
+
+        if (viewName === 'calendar') {
+            elements.viewSwitcher.classList.add('hidden');
+            tg.BackButton.show();
+        } else {
+            elements.viewSwitcher.classList.remove('hidden');
+            tg.BackButton.hide();
+        }
+    }
+
+    // --- ЛОГИКА API ---
     async function fetchAPI(path, options = {}) {
-        const defaultHeaders = { 'Bypass-Tunnel-Reminder': 'true' };
-        options.headers = { ...defaultHeaders, ...options.headers };
+        options.headers = { 'Bypass-Tunnel-Reminder': 'true', ...options.headers };
         try {
             const response = await fetch(API_BASE_URL + path, options);
             if (!response.ok) {
@@ -47,32 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         } catch (error) {
             console.error('Ошибка API:', error);
-            tg.showAlert(`Ошибка при запросе к серверу: ${error.message}`);
+            tg.showAlert(`Ошибка: ${error.message}`);
             throw error;
         }
-    }
-
-    function showScreen(screenName) {
-        Object.values(elements.screens).forEach(s => s.classList.remove('active'));
-        elements.screens[screenName].classList.add('active');
-        state.currentScreen = screenName;
-        updateHeader();
     }
 
     function showLoader() { elements.loader.classList.remove('hidden'); }
     function hideLoader() { elements.loader.classList.add('hidden'); }
 
     function updateHeader() {
-        elements.headerTitle.textContent = state.currentScreen === 'location' ? 'Локации' : state.selectedLocationName;
-        state.currentScreen === 'calendar' ? tg.BackButton.show() : tg.BackButton.hide();
+        elements.headerTitle.textContent = state.currentView === 'calendar' ? state.selectedLocationName : 'Локации';
     }
 
+    // --- ОСНОВНЫЕ ФУНКЦИИ ---
     async function init() {
         showLoader();
         try {
             const data = await fetchAPI('/api/locations');
-            renderLocations(data.locations);
-            showScreen('location');
+            state.locations = data.locations;
+            renderLocations(state.locations);
+            showView('list');
         } catch (error) { /* Ошибка уже показана */ } finally {
             hideLoader();
         }
@@ -89,17 +110,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function initMap() {
+        if (state.map) return;
+        state.map = L.map(elements.mapContainer).setView([55.751244, 37.618423], 10);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(state.map);
+        state.locations.forEach(loc => {
+            if (loc.coords && loc.coords[0] !== 0) {
+                const marker = L.marker(loc.coords).addTo(state.map);
+                marker.bindPopup(`<div class="popup-title">${loc.name}</div><a class="popup-link" data-location-id="${loc.id}">Выбрать</a>`);
+            }
+        });
+        state.map.on('popupopen', (e) => {
+            const link = e.popup.getElement().querySelector('.popup-link');
+            link?.addEventListener('click', (event) => {
+                const locationId = event.target.dataset.locationId;
+                const selectedLoc = state.locations.find(l => l.id === locationId);
+                if (selectedLoc) {
+                    state.map.closePopup();
+                    onLocationSelect(selectedLoc);
+                }
+            });
+        });
+    }
+
     async function onLocationSelect(location) {
         state.selectedLocationId = location.id;
         state.selectedLocationName = location.name;
-        showLoader();
-        showScreen('calendar');
+        showView('calendar');
+        updateHeader();
+        elements.calendarWrapper.innerHTML = '<div class="loader-container" style="height: 200px;"><div class="padel-loader"></div></div>';
         try {
             const data = await fetchAPI(`/api/calendar?location_id=${state.selectedLocationId}`);
             state.availableDates = new Set(data.available_dates);
             renderCalendars();
-        } catch (error) { showScreen('location'); } finally {
-            hideLoader();
+        } catch (error) {
+            elements.calendarWrapper.innerHTML = '<p style="text-align: center; color: var(--tg-theme-hint-color);">Не удалось загрузить календарь</p>';
         }
     }
 
@@ -175,8 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSessions(data) {
         const grid = elements.modal.sessionsGrid;
         grid.innerHTML = '';
-
-        // ИЗМЕНЕНО: Добавляем/убираем класс для управления стилем
         if (data.sessions && data.sessions.length > 0) {
             grid.classList.remove('empty');
             data.sessions.forEach(s => {
@@ -219,8 +266,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-    elements.backBtn.addEventListener('click', () => { if (state.currentScreen === 'calendar') { showScreen('location'); } });
-    tg.BackButton.onClick(() => elements.backBtn.click());
+    elements.showListBtn.addEventListener('click', () => showView('list'));
+    elements.showMapBtn.addEventListener('click', () => {
+        showView('map');
+        initMap();
+        setTimeout(() => state.map?.invalidateSize(), 100);
+    });
+    tg.BackButton.onClick(() => {
+        showView('list');
+        updateHeader();
+    });
+    elements.backBtn.addEventListener('click', () => tg.BackButton.onClick());
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) { elements.modal.overlay.classList.remove('visible'); } });
     elements.modal.notifyBtn.addEventListener('click', addNotification);

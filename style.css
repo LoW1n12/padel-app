@@ -14,8 +14,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     background-color: var(--tg-theme-bg-color);
     color: var(--tg-theme-text-color);
     overscroll-behavior-y: none;
@@ -28,37 +27,50 @@ body {
 header { padding: 12px 16px; text-align: center; background-color: var(--tg-theme-bg-color); box-shadow: 0 1px 0 var(--tg-theme-secondary-bg-color); position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; }
 header h1 { margin: 0; font-size: 17px; font-weight: 600; }
 .back-button { position: absolute; left: 16px; background: none; border: none; cursor: pointer; padding: 6px; font-size: 24px; color: var(--tg-theme-button-color); }
-main { overflow-y: auto; flex-grow: 1; padding: 0 16px; }
-.screen { display: none; }
-.screen.active { display: block; }
+main { overflow-y: auto; flex-grow: 1; padding: 0 16px; display: flex; flex-direction: column; }
 .hidden { display: none !important; }
 
 .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--tg-theme-hint-color); }
 .padel-loader { width: 40px; height: 40px; border: 4px solid var(--tg-theme-button-color); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; margin-bottom: 16px; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-.location-list { padding: 16px 0; display: grid; gap: 12px; }
+/* Стили для переключателя и видов */
+.view-switcher { display: flex; justify-content: center; padding: 8px 0; gap: 10px; flex-shrink: 0; }
+.switch-btn { padding: 8px 16px; border: none; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-hint-color); transition: all 0.2s ease; }
+.switch-btn.active { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
+.view { display: none; flex-grow: 1; }
+.view.active { display: block; }
+
+/* Вид: Список */
+.location-list { padding: 8px 0 16px; display: grid; gap: 12px; }
 .location-card { background: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: transform 0.15s ease; }
 .location-card:active { transform: scale(0.98); }
 .location-card h2 { margin: 0 0 4px; font-size: 18px; }
 .location-card p { margin: 0; font-size: 15px; color: var(--tg-theme-hint-color); }
 
-.calendar-wrapper { padding: 16px 0; }
+/* Вид: Карта */
+#map-view { padding-bottom: 16px; height: 100%; }
+#map { height: 100%; width: 100%; border-radius: 12px; }
+.leaflet-popup-content-wrapper { background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); border-radius: 8px; }
+.leaflet-popup-tip { background: var(--tg-theme-secondary-bg-color); }
+.popup-title { font-weight: bold; margin-bottom: 5px; }
+.popup-link { color: var(--tg-theme-button-color); text-decoration: underline; cursor: pointer; }
+
+/* Вид: Календарь */
+.calendar-main-container { padding: 8px 0 16px; }
 .calendar-instance { margin-bottom: 20px; }
 .calendar-header { text-align: center; font-weight: 600; margin-bottom: 12px; }
 .weekdays-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; color: var(--tg-theme-hint-color); margin-bottom: 8px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-
 .calendar-day { font-size: 16px; height: 42px; display: flex; justify-content: center; align-items: center; position: relative; border-radius: 50%; color: var(--tg-theme-hint-color); cursor: pointer; }
 .calendar-day.is-past { color: #8e8e93; opacity: 0.6; pointer-events: none; }
 .calendar-day.is-placeholder { visibility: hidden; }
 .calendar-day.is-future { color: var(--tg-theme-text-color); }
-
 .calendar-day.has-sessions::after { content: ''; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background-color: var(--tg-theme-button-color); border-radius: 50%; }
 .calendar-day.is-today span { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color) !important; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 .calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color); }
 
-/* Modal */
+/* Модальное окно */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
 .modal-overlay.visible { opacity: 1; visibility: visible; }
 .modal-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
@@ -72,21 +84,8 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; }
 .action-button.green { background-color: var(--green-color); color: white; }
 #add-notification-btn { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
 
-/* ИЗМЕНЕНО: Новая, более надежная логика центрирования */
-.sessions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 12px;
-    flex-grow: 1; /* Позволяет сетке растянуться на всю высоту modal-body */
-}
-
-/* Когда сеансов нет, превращаем сетку в flex-контейнер для центрирования */
-.sessions-grid.empty {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+.sessions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; flex-grow: 1; }
+.sessions-grid.empty { display: flex; justify-content: center; align-items: center; }
 .session-slot { background-color: var(--tg-theme-bg-color); border-radius: 8px; padding: 12px; text-align: center; }
 .session-slot-time { font-size: 18px; font-weight: 600; margin-bottom: 4px; color: var(--tg-theme-text-color); }
 .session-slot-details { font-size: 12px; color: var(--tg-theme-hint-color); word-wrap: break-word; }

@@ -80,9 +80,9 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; }
 .calendar-day.is-today span { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color) !important; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 .calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color); }
 
-.modal-overlay { z-index: 1001; }
+.modal-overlay { z-index: 1001; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.modal-overlay.visible { opacity: 1; visibility: visible; }
 .modal-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
-.modal-overlay.visible { opacity: 1; visibility: visible; transform: translateY(0); }
 .modal-overlay.visible .modal-content { transform: translateY(0); }
 .modal-header { display: flex; justify-content: center; align-items: center; position: relative; padding: 16px; border-bottom: 1px solid var(--tg-theme-bg-color); }
 .modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }

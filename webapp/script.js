@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
             selectBtn: document.getElementById('panel-select-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
             taxiBtn: document.getElementById('panel-taxi-btn'),
-            calendarContainer: document.getElementById('panel-calendar-container'),
         },
         modal: {
             overlay: document.getElementById('detail-modal'),
@@ -39,12 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let state = {
-        locations: [],
-        map: null,
-        selectedLocationId: null,
-        selectedLocationName: '',
-        availableDates: new Set(),
-        selectedDateForModal: null,
+        locations: [], map: null, selectedLocationId: null, selectedLocationName: '',
+        availableDates: new Set(), selectedDateForModal: null,
     };
 
     function showView(viewName) {
@@ -66,9 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showLoader(show) {
-        elements.loader.classList.toggle('hidden', !show);
-    }
+    function showLoader(show) { elements.loader.classList.toggle('hidden', !show); }
 
     async function init() {
         showLoader(true);
@@ -88,7 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'location-card';
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => showMapLocationPanel(loc, true));
+            card.addEventListener('click', () => {
+                showView('map');
+                initMap();
+                setTimeout(() => showMapLocationPanel(loc, true), 200);
+            });
             elements.locationList.appendChild(card);
         });
     }
@@ -123,24 +120,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.mapPanel.content.classList.remove('expanded');
 
-        const newSelectBtn = elements.mapPanel.selectBtn.cloneNode(true);
-        elements.mapPanel.selectBtn.parentNode.replaceChild(newSelectBtn, elements.mapPanel.selectBtn);
-        elements.mapPanel.selectBtn = newSelectBtn;
+        const setupButton = (btnId, listener) => {
+            const oldBtn = elements.mapPanel[btnId];
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            newBtn.addEventListener('click', listener);
+            elements.mapPanel[btnId] = newBtn;
+        };
 
-        const newRouteBtn = elements.mapPanel.routeBtn.cloneNode(true);
-        elements.mapPanel.routeBtn.parentNode.replaceChild(newRouteBtn, elements.mapPanel.routeBtn);
-        elements.mapPanel.routeBtn = newRouteBtn;
-
-        const newTaxiBtn = elements.mapPanel.taxiBtn.cloneNode(true);
-        elements.mapPanel.taxiBtn.parentNode.replaceChild(newTaxiBtn, elements.mapPanel.taxiBtn);
-        elements.mapPanel.taxiBtn = newTaxiBtn;
-
-        elements.mapPanel.selectBtn.addEventListener('click', () => {
+        setupButton('selectBtn', () => {
             elements.mapPanel.content.classList.add('expanded');
             loadAndRenderCalendarInPanel();
         });
-        elements.mapPanel.routeBtn.addEventListener('click', () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
-        elements.mapPanel.taxiBtn.addEventListener('click', () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
+        setupButton('routeBtn', () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
+        setupButton('taxiBtn', () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
 
         if(expand) {
              elements.mapPanel.content.classList.add('expanded');

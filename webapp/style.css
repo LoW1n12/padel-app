@@ -22,11 +22,10 @@ body {
 
 .app-container { height: 100%; display: flex; flex-direction: column; }
 header { padding: 12px 16px; text-align: center; background-color: var(--tg-theme-bg-color); box-shadow: 0 1px 0 var(--tg-theme-secondary-bg-color); position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; }
-.back-button { position: absolute; left: 16px; background: none; border: none; cursor: pointer; padding: 6px; font-size: 24px; color: var(--tg-theme-button-color); }
 main { overflow: hidden; flex-grow: 1; padding: 0 16px; display: flex; flex-direction: column; position: relative; }
 .hidden { display: none !important; }
 
-header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+header h1 { margin: 0; font-size: 24px; font-weight: 700; text-align: center; width: 100%; }
 
 .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--tg-theme-hint-color); }
 .padel-loader { width: 40px; height: 40px; border: 4px solid var(--tg-theme-button-color); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; margin-bottom: 16px; }
@@ -74,7 +73,7 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; }
 .weekdays-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; color: var(--tg-theme-hint-color); margin-bottom: 8px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
 .calendar-day { font-size: 16px; height: 42px; display: flex; justify-content: center; align-items: center; position: relative; border-radius: 50%; color: var(--tg-theme-text-color); cursor: pointer; }
-.calendar-day.is-past { color: var(--tg-theme-hint-color); opacity: 0.6; pointer-events: none; }
+.calendar-day.is-disabled { color: var(--tg-theme-hint-color); opacity: 0.6; pointer-events: none; }
 .calendar-day.is-placeholder { visibility: hidden; }
 .calendar-day.has-sessions::after { content: ''; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background-color: var(--tg-theme-button-color); border-radius: 50%; }
 .calendar-day.is-today span { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color) !important; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
@@ -86,7 +85,8 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; }
 .modal-overlay.visible .modal-content { transform: translateY(0); }
 .modal-header { display: flex; justify-content: center; align-items: center; position: relative; padding: 16px; border-bottom: 1px solid var(--tg-theme-bg-color); }
 .modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
-.close-button { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--tg-theme-hint-color); background: none; border: none; cursor: pointer; }
+.modal-back-button { position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: var(--tg-theme-button-color); cursor: pointer; }
+.close-button { position: absolute; right: 16px; font-size: 24px; color: var(--tg-theme-hint-color); background: none; border: none; cursor: pointer; }
 .modal-body { padding: 16px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
 .modal-footer { padding: 16px; border-top: 1px solid var(--tg-theme-bg-color); display: flex; flex-direction: column; gap: 10px; }
 .action-button { border: none; border-radius: 12px; padding: 14px 20px; font-size: 17px; font-weight: 600; cursor: pointer; width: 100%; text-decoration: none; text-align: center; box-sizing: border-box; }

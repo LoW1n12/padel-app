@@ -39,6 +39,8 @@
             <div id="panel-drag-handle" class="panel-drag-handle"></div>
             <div class="panel-header">
                 <h3 id="panel-location-name">Название локации</h3>
+                <!-- ИЗМЕНЕНО: Добавлен крестик -->
+                <button id="panel-close-btn" class="panel-close-button">&times;</button>
                 <p id="panel-location-description">Описание</p>
             </div>
             <div id="panel-calendar-container" class="panel-calendar-container">
@@ -64,7 +66,7 @@
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
-                <button id="modal-back-btn" class="modal-back-button">&lt;</button>
+                <!-- ИЗМЕНЕНО: Убрана стрелка "назад" -->
                 <h3 id="modal-date-header">Доступные сеансы</h3>
                 <button id="close-modal-btn" class="close-button">&times;</button>
             </header>
@@ -84,6 +86,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 <!--https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU-->

@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay: document.getElementById('map-panel-overlay'),
             content: document.getElementById('map-location-panel'),
             dragHandle: document.getElementById('panel-drag-handle'),
+            closeBtn: document.getElementById('panel-close-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
             selectBtn: document.getElementById('panel-select-btn'),
@@ -29,8 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         modal: {
             overlay: document.getElementById('detail-modal'),
-            content: document.getElementById('detail-modal').querySelector('.modal-content'),
-            backBtn: document.getElementById('modal-back-btn'),
             closeBtn: document.getElementById('close-modal-btn'),
             dateHeader: document.getElementById('modal-date-header'),
             sessionsGrid: document.getElementById('sessions-grid'),
@@ -83,11 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'location-card';
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => {
-                showView('map');
-                initMap();
-                setTimeout(() => showMapLocationPanel(loc, true), 200);
-            });
+            card.addEventListener('click', () => showMapLocationPanel(loc, true));
             elements.locationList.appendChild(card);
         });
     }
@@ -114,6 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function setupButton(buttonElement, listener) {
+        const newBtn = buttonElement.cloneNode(true);
+        buttonElement.parentNode.replaceChild(newBtn, buttonElement);
+        newBtn.addEventListener('click', listener);
+        return newBtn;
+    }
+
     function showMapLocationPanel(locData, expand = false) {
         state.selectedLocationId = locData.id;
         state.selectedLocationName = locData.name;
@@ -122,20 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.mapPanel.content.classList.remove('expanded');
 
-        const setupButton = (btnId, listener) => {
-            const oldBtn = elements.mapPanel[btnId];
-            const newBtn = oldBtn.cloneNode(true);
-            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-            newBtn.addEventListener('click', listener);
-            elements.mapPanel[btnId] = newBtn;
-        };
-
-        setupButton('selectBtn', () => {
+        elements.mapPanel.selectBtn = setupButton(elements.mapPanel.selectBtn, () => {
             elements.mapPanel.content.classList.add('expanded');
             loadAndRenderCalendarInPanel();
         });
-        setupButton('routeBtn', () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
-        setupButton('taxiBtn', () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
+        elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
+        elements.mapPanel.taxiBtn = setupButton(elements.mapPanel.taxiBtn, () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
+        elements.mapPanel.closeBtn = setupButton(elements.mapPanel.closeBtn, hideMapLocationPanel);
 
         if(expand) {
              elements.mapPanel.content.classList.add('expanded');
@@ -278,7 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.showListBtn.addEventListener('click', () => showView('list'));
     elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
-    elements.modal.backBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });

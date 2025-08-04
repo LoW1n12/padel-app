@@ -99,5 +99,30 @@ LOCATIONS_CONFIG = {
             'Корт для 4-х': {'service_id': '11995111'},
             'Ultra корт': {'service_id': '11995098'}
         }
-    }
+    },
+    'Долгопрудный': {
+        'api_type': 'vivacrm',
+        'booking_link': 'https://paripadel.ru/admiral#booking',
+        'description': 'Корты от Pari в яхт-клубе',
+        'display_in_case': 'в Долгопрудном',
+        'courts': {
+            "Закрытый корт": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/ucYTIM/products/master-services/bc7ce7e6-40c3-4c23-885a-ac0bf38e90cc/timeslots",
+                "studioId": "a20eac9b-0e7e-4d84-9888-52d904feb74e",
+                "subServiceIds": ["2d8a66d5-cd3b-4154-b9f7-a54b0f14cad3"]
+            }
+        }
+    },
+    'Мытищи': {
+        'api_type': 'yclients_fili',
+        'description': 'Корты от A33',
+        'booking_link': 'https://b918666.yclients.com/company/855029/personal/select-time?o=m-1',
+        'display_in_case': 'в Мытищах',
+        'company_id': "b918666",
+        'location_id': '855029',
+        'courts': {
+            'Открытый корт': {'service_id': '15554204'}
+        }
+    },
+
 }

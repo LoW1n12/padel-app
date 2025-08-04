@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 async def webapp_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отправляет кнопку для запуска Mini App."""
     # !!! ВАЖНО: Убедитесь, что здесь ваш актуальный URL от GitHub Pages !!!
-    WEBAPP_URL = "https://ВАШ_ЛОГИН.github.io/ВАШ_РЕПОЗИТОРИЙ/"
+    WEBAPP_URL = "https://low1n12.github.io/padel-app/"
 
     keyboard = [[InlineKeyboardButton("🎾 Открыть приложение", web_app={"url": WEBAPP_URL})]]
     await update.message.reply_text(

@@ -50,10 +50,7 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; display: flex; flex-dire
 
 /* Вид: Карта */
 #map-view { padding-bottom: 16px; height: 100%; }
-#map { height: 100%; width: 100%; border-radius: 12px; }
-.leaflet-popup-content-wrapper { background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); border-radius: 8px; }
-.leaflet-popup-tip { background: var(--tg-theme-secondary-bg-color); }
-.popup-title { font-weight: bold; margin-bottom: 5px; }
+#map { height: 100%; width: 100%; border-radius: 12px; overflow: hidden; }
 .popup-link { color: var(--tg-theme-button-color); text-decoration: underline; cursor: pointer; }
 
 /* Вид: Календарь */

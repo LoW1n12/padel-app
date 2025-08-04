@@ -113,6 +113,37 @@ LOCATIONS_CONFIG = {
             }
         }
     },
+    'Сколково': {
+        'api_type': 'vivacrm',
+        'booking_link': 'https://padlhub.ru/padel_skolkovo',
+        'description': 'Корты от Академии Будущего',
+        'display_in_case': 'в Сколково',
+        'courts': {
+            "Закрытый корт": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
+                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
+                "subServiceIds": ["96d2179a-5a96-41bd-a0c9-1df9e5890e16"]
+            },
+            "Закрытый корт 1x1": {
+                "api_url": "https://api.vivacrm.ru/end-user/api/v1/iSkq6G/products/master-services/e2caa535-6660-479a-bd32-3638ba7f6b89/timeslots",
+                "studioId": "0d5504f6-ea6f-44bb-a9e4-947faf0273ab",
+                "subServiceIds": ["918f6a0c-d082-4d97-b8f5-4ff0d9530c6c"]
+            }
+        }
+    },
+    # 'Долгопрудный': {
+    #     'api_type': 'vivacrm',
+    #     'booking_link': 'https://paripadel.ru/admiral#booking',
+    #     'description': 'Корты от Академии Будущего',
+    #     'display_in_case': 'в Долгопрудном',
+    #     'courts': {
+    #         "Закрытый корт": {
+    #             "api_url": "https://api.vivacrm.ru/end-user/api/v1/ucYTIM/products/master-services/bc7ce7e6-40c3-4c23-885a-ac0bf38e90cc/timeslots",
+    #             "studioId": "a20eac9b-0e7e-4d84-9888-52d904feb74e",
+    #             "subServiceIds": ["2d8a66d5-cd3b-4154-b9f7-a54b0f14cad3"]
+    #         }
+    #     }
+    # },
     'Мытищи': {
         'api_type': 'yclients_fili',
         'description': 'Корты от A33',
@@ -144,7 +175,7 @@ LOCATIONS_CONFIG = {
         'description': 'Корты от Академии Будущего',
         'booking_link': 'https://n1165596.yclients.com/company/1109937/',
         'display_in_case': 'на Нагатинской',
-        'company_id': 'ВАШ_COMPANY_ID',
+        'company_id': 'n1165596',
         'location_id': '1109937',
         'courts': {
             'Обычный корт 1': {'service_id': '18030932', 'staff_id': '3420308', 'court_group_name': 'Закрытый корт'},

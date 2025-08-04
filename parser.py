@@ -19,8 +19,7 @@ async def get_vivacrm_sessions(session: aiohttp.ClientSession, check_date: date,
               'subServiceIds': court_config['subServiceIds']}
     try:
         async with session.get(court_config['api_url'], params=params, headers=DEFAULT_HEADERS, timeout=10) as resp:
-            if resp.status == 200:
-                return await resp.json()
+            if resp.status == 200: return await resp.json()
             logger.warning(f"VIVACRM: Статус {resp.status} для {check_date} по URL {resp.url}")
             return []
     except Exception as e:
@@ -29,29 +28,29 @@ async def get_vivacrm_sessions(session: aiohttp.ClientSession, check_date: date,
 
 
 async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date: date, location_config: dict,
-                                     service_id: str) -> Dict[str, Dict]:
+                                     service_id: str, staff_id: int) -> Dict[str, Dict]:
     if not YCLIENTS_TOKEN:
-        logger.warning("YCLIENTS: Токен авторизации (YCLIENTS_AUTH_TOKEN) не найден.")
+        logger.warning("YCLIENTS: Токен авторизации не найден.")
         return {}
 
     location_id, company_id = location_config['location_id'], location_config['company_id']
     date_str = check_date.strftime('%Y-%m-%d')
     url_timeslots = "https://platform.yclients.com/api/v1/b2c/booking/availability/search-timeslots"
 
+    # ИЗМЕНЕНО: payload теперь использует переданный staff_id
     payload_timeslots = {
         "context": {"location_id": int(location_id)},
-        "filter": {"date": date_str, "records": [{"staff_id": -1, "attendance_service_items": []}]}
+        "filter": {"date": date_str, "records": [{"staff_id": staff_id, "attendance_service_items": []}]}
     }
 
     try:
         async with session.post(url_timeslots, headers=DEFAULT_HEADERS, json=payload_timeslots, timeout=15) as resp:
             if resp.status != 200:
-                logger.warning(
-                    f"YCLIENTS: Ошибка получения таймслотов. Статус {resp.status}, URL {url_timeslots}, Payload {payload_timeslots}")
+                logger.warning(f"YCLIENTS: Ошибка таймслотов. Статус {resp.status}, URL {url_timeslots}")
                 return {}
             slots = (await resp.json()).get('data', [])
     except Exception as e:
-        logger.error(f"YCLIENTS_EXCEPTION: Ошибка при запросе таймслотов: {e}", exc_info=True)
+        logger.error(f"YCLIENTS_EXCEPTION: Ошибка таймслотов: {e}", exc_info=True)
         return {}
 
     if not slots: return {}
@@ -64,8 +63,9 @@ async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date:
     for slot in slots:
         dt = slot.get('attributes', {}).get('datetime', '')
         if dt and dt.endswith((":00:00+03:00", ":30:00+03:00")):
+            # ИЗМЕНЕНО: payload для услуг тоже использует staff_id
             payload = {"context": {"location_id": int(location_id)},
-                       "filter": {"datetime": dt, "records": [{"staff_id": -1, "attendance_service_items": []}]}}
+                       "filter": {"datetime": dt, "records": [{"staff_id": staff_id, "attendance_service_items": []}]}}
             task = asyncio.create_task(session.post(url_services, headers=headers_with_auth, json=payload, timeout=10))
             tasks_with_time.append((task, dt))
 
@@ -76,24 +76,23 @@ async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date:
 
     for task, time_iso in tasks_with_time:
         if task.cancelled() or task.exception():
-            logger.error(f"YCLIENTS_EXCEPTION: Ошибка в gather при запросе цен: {task.exception()}")
+            logger.error(f"YCLIENTS_EXCEPTION: Ошибка запроса цен: {task.exception()}")
             continue
 
         resp = task.result()
         if resp.status != 200:
             if resp.status == 401:
-                logger.warning(f"YCLIENTS: Ошибка 401 (Unauthorized). Токен авторизации, вероятно, истек.")
+                logger.warning(f"YCLIENTS: Ошибка 401 (Unauthorized).")
             else:
-                logger.warning(f"YCLIENTS: Ошибка получения цен. Статус {resp.status} для URL {resp.url}")
+                logger.warning(f"YCLIENTS: Ошибка получения цен. Статус {resp.status}")
             continue
 
         try:
             services_data = await resp.json()
             time_obj = datetime.fromisoformat(time_iso)
-
             if time_obj.minute != 0: continue
-
             time_str = time_obj.strftime('%H:%M')
+
             for service in services_data.get('data', []):
                 attrs = service.get('attributes', {})
                 if attrs.get('duration') == 3600:
@@ -102,10 +101,9 @@ async def get_yclients_fili_sessions(session: aiohttp.ClientSession, check_date:
                         aggregated_data[time_str] = {'price': price}
                     break
         except Exception as e:
-            logger.error(f"YCLIENTS_PARSE_ERROR: Ошибка при обработке ответа от {url_services}: {e}", exc_info=True)
+            logger.error(f"YCLIENTS_PARSE_ERROR: {e}", exc_info=True)
         finally:
-            if not resp.closed:
-                await resp.release()
+            if not resp.closed: await resp.release()
 
     return dict(aggregated_data)
 
@@ -116,31 +114,30 @@ async def get_available_sessions_api(session: aiohttp.ClientSession, check_date:
     api_type = location_config.get('api_type')
 
     if api_type == 'vivacrm':
-        # ИСПРАВЛЕНО: Добавлен полный код для обработки vivacrm
         court_config = location_config.get('courts', {}).get(court_type)
         if not court_config: return {}
 
         raw_response = await get_vivacrm_sessions(session, check_date, court_config)
         result_by_time = defaultdict(dict)
-
         if raw_response and isinstance(raw_response, list) and len(raw_response) > 0:
-            # Ответ vivacrm - это список, обычно с одним элементом
             data_block = raw_response[0]
-            timeslots = data_block.get('timeslots', [])
-            for slot in timeslots:
+            for slot in data_block.get('timeslots', []):
                 time_from_iso = slot.get('timeFrom')
                 if time_from_iso and datetime.fromisoformat(time_from_iso).minute == 0:
                     dt_obj = datetime.fromisoformat(time_from_iso)
-                    time_str = dt_obj.strftime('%H:%M')
-                    price = slot.get('price', {}).get('from', 0)
-                    result_by_time[time_str] = {'price': price}
+                    result_by_time[dt_obj.strftime('%H:%M')] = {'price': slot.get('price', {}).get('from', 0)}
         return dict(result_by_time)
 
     elif api_type == 'yclients_fili':
         court_config = location_config.get('courts', {}).get(court_type)
-        if not court_config or not (service_id := court_config.get('service_id')):
-            return {}
-        return await get_yclients_fili_sessions(session, check_date, location_config, service_id)
+        if not court_config: return {}
+
+        service_id = court_config.get('service_id')
+        # ИЗМЕНЕНО: Получаем staff_id из конфига, если его нет, используем -1 для совместимости
+        staff_id = int(court_config.get('staff_id', -1))
+
+        if not service_id: return {}
+        return await get_yclients_fili_sessions(session, check_date, location_config, service_id, staff_id)
 
     return {}
 
@@ -155,8 +152,7 @@ async def fetch_availability_for_location_date(session: aiohttp.ClientSession, l
 
     aggregated_data = defaultdict(lambda: defaultdict(dict))
     for court_type, result_for_type in zip(court_types, results_per_type):
-        if not result_for_type:
-            continue
+        if not result_for_type: continue
         for time_str, data in result_for_type.items():
             aggregated_data[time_str][court_type] = {'price': data.get('price', 0)}
 

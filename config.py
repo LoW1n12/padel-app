@@ -124,5 +124,20 @@ LOCATIONS_CONFIG = {
             'Открытый корт': {'service_id': '15554204'}
         }
     },
+    'Терехово': {
+        'api_type': 'yclients_fili',
+        'description': 'Корты от Академии Будущего',
+        'booking_link': 'https://n1165596.yclients.com/company/1149911',
+        'display_in_case': 'в Терехово',
+        'company_id': "n1165596",
+        'location_id': '1149911',
+        'courts': {
+            'Корт 1': {'service_id': '18999132', 'staff_id': '3801338'},
+            'Корт 2': {'service_id': '17302417', 'staff_id': '3497691'},
+            'Корт 3': {'service_id': '17302417', 'staff_id': '3497812'},
+            'Корт 4': {'service_id': '17302417', 'staff_id': '3497820'},
+            'Корт 5': {'service_id': '17302417', 'staff_id': '3497822'},
+        }
+    },
 
 }

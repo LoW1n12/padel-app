@@ -13,7 +13,6 @@
             <h1 id="header-title">Локации</h1>
         </header>
 
-        <!-- Переключатель Список/Карта -->
         <div id="view-switcher" class="view-switcher">
             <button id="show-list-btn" class="switch-btn active">Список</button>
             <button id="show-map-btn" class="switch-btn">На карте</button>
@@ -30,7 +29,6 @@
             </div>
 
             <div id="map-view" class="view">
-                <!-- Контейнер для Яндекс.Карты -->
                 <div id="map"></div>
             </div>
 
@@ -42,7 +40,30 @@
         </main>
     </div>
 
-    <!-- Модальное окно -->
+    <!-- Панель для карты -->
+    <div id="map-panel-overlay" class="panel-overlay">
+        <div id="map-location-panel" class="panel-content">
+            <div class="panel-header">
+                <h3 id="panel-location-name">Название локации</h3>
+                <p id="panel-location-description">Описание</p>
+            </div>
+            <div class="panel-body">
+                <button id="panel-select-btn" class="panel-button primary">Выбрать эту локацию</button>
+            </div>
+            <div class="panel-footer">
+                <button id="panel-route-btn" class="panel-button-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span>Как добраться</span>
+                </button>
+                <button id="panel-taxi-btn" class="panel-button-icon">
+                    <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-1.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                    <span>Доехать на такси</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для календаря -->
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
@@ -59,7 +80,6 @@
         </div>
     </div>
 
-    <!-- Подключаем API Яндекс.Карт -->
     <!-- !!! ВАЖНО: Замените "ВАШ_API_КЛЮЧ" на ваш реальный ключ от Яндекс.Карт !!! -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU" type="text/javascript"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>

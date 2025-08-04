@@ -1,5 +1,4 @@
 :root {
-    /* Используем переменные Telegram для адаптации */
     --tg-theme-bg-color: var(--tg-bg-color, #ffffff);
     --tg-theme-text-color: var(--tg-text-color, #000000);
     --tg-theme-button-color: var(--tg-button-color, #007aff);
@@ -7,8 +6,6 @@
     --tg-theme-hint-color: var(--tg-hint-color, #999999);
     --tg-theme-secondary-bg-color: var(--tg-secondary-bg-color, #f0f3f8);
     --tg-viewport-height: var(--tg-viewport-stable-height, 100vh);
-
-    /* Дополнительные цвета */
     --green-color: #34C759;
 }
 
@@ -25,35 +22,33 @@ body {
 
 .app-container { height: 100%; display: flex; flex-direction: column; }
 header { padding: 12px 16px; text-align: center; background-color: var(--tg-theme-bg-color); box-shadow: 0 1px 0 var(--tg-theme-secondary-bg-color); position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; }
-header h1 { margin: 0; font-size: 17px; font-weight: 600; }
 .back-button { position: absolute; left: 16px; background: none; border: none; cursor: pointer; padding: 6px; font-size: 24px; color: var(--tg-theme-button-color); }
 main { overflow-y: auto; flex-grow: 1; padding: 0 16px; display: flex; flex-direction: column; }
 .hidden { display: none !important; }
+
+header h1 { margin: 0; font-size: 24px; font-weight: 700; }
 
 .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--tg-theme-hint-color); }
 .padel-loader { width: 40px; height: 40px; border: 4px solid var(--tg-theme-button-color); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; margin-bottom: 16px; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* Стили для переключателя и видов */
-.view-switcher { display: flex; justify-content: center; padding: 8px 0; gap: 10px; flex-shrink: 0; }
-.switch-btn { padding: 8px 16px; border: none; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-hint-color); transition: all 0.2s ease; }
+.view-switcher { display: flex; justify-content: center; padding: 12px 0; gap: 12px; flex-shrink: 0; }
+.switch-btn { padding: 10px 20px; border: none; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-hint-color); transition: all 0.2s ease; }
 .switch-btn.active { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
 .view { display: none; flex-grow: 1; }
 .view.active { display: block; }
 
-/* Вид: Список */
 .location-list { padding: 8px 0 16px; display: grid; gap: 12px; }
 .location-card { background: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: transform 0.15s ease; }
 .location-card:active { transform: scale(0.98); }
-.location-card h2 { margin: 0 0 4px; font-size: 18px; }
+.location-card h2 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
 .location-card p { margin: 0; font-size: 15px; color: var(--tg-theme-hint-color); }
 
-/* Вид: Карта */
 #map-view { padding-bottom: 16px; height: 100%; }
 #map { height: 100%; width: 100%; border-radius: 12px; overflow: hidden; }
-.popup-link { color: var(--tg-theme-button-color); text-decoration: underline; cursor: pointer; }
+#map.dark-theme { filter: invert(1) hue-rotate(180deg); }
+.custom-marker { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid var(--tg-theme-bg-color); }
 
-/* Вид: Календарь */
 .calendar-main-container { padding: 8px 0 16px; }
 .calendar-instance { margin-bottom: 20px; }
 .calendar-header { text-align: center; font-weight: 600; margin-bottom: 12px; }
@@ -67,7 +62,20 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; display: flex; flex-dire
 .calendar-day.is-today span { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color) !important; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 .calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color); }
 
-/* Модальное окно */
+.panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: flex-end; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.panel-overlay.visible { opacity: 1; visibility: visible; }
+.panel-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; }
+.panel-overlay.visible .panel-content { transform: translateY(0); }
+.panel-header { text-align: center; margin-bottom: 20px; }
+.panel-header h3 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+.panel-header p { margin: 0; font-size: 16px; color: var(--tg-theme-hint-color); }
+.panel-body { margin-bottom: 16px; }
+.panel-button { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer; }
+.panel-button.primary { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
+.panel-footer { display: flex; justify-content: space-around; gap: 16px; }
+.panel-button-icon { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--tg-theme-hint-color); font-size: 13px; }
+.panel-button-icon svg { width: 28px; height: 28px; fill: var(--tg-theme-hint-color); }
+
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
 .modal-overlay.visible { opacity: 1; visibility: visible; }
 .modal-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
@@ -80,7 +88,6 @@ main { overflow-y: auto; flex-grow: 1; padding: 0 16px; display: flex; flex-dire
 .action-button { border: none; border-radius: 12px; padding: 14px 20px; font-size: 17px; font-weight: 600; cursor: pointer; width: 100%; text-decoration: none; text-align: center; box-sizing: border-box; }
 .action-button.green { background-color: var(--green-color); color: white; }
 #add-notification-btn { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
-
 .sessions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; flex-grow: 1; }
 .sessions-grid.empty { display: flex; justify-content: center; align-items: center; }
 .session-slot { background-color: var(--tg-theme-bg-color); border-radius: 8px; padding: 12px; text-align: center; }

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://crazy-eyes-see.loca.lt";
+    const API_BASE_URL = "https://crazy-eyes-see.loca.lt";;
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -203,10 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
 
-        const bookingLink = locData.booking_link || null;
+        const bookingLink = state.locations.find(l => l.id === locData.id)?.booking_link || null;
         if (bookingLink) {
             elements.infoPanel.bookingBtn.href = bookingLink;
-            elements.infoPanel.bookingBtn.style.display = 'block';
+            elements.infoPanel.bookingBtn.style.display = 'flex';
         } else {
             elements.infoPanel.bookingBtn.style.display = 'none';
         }
@@ -315,8 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
                 grid.appendChild(item);
             });
-            elements.modal.bookingBtn.classList.toggle('hidden', !data.booking_link);
-            if(data.booking_link) elements.modal.bookingBtn.href = data.booking_link;
+            const bookingLink = state.locations.find(l => l.id === state.selectedLocationId)?.booking_link;
+            elements.modal.bookingBtn.classList.toggle('hidden', !bookingLink);
+            if(bookingLink) elements.modal.bookingBtn.href = bookingLink;
         } else {
             grid.classList.add('empty');
             grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;

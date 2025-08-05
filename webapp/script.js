@@ -1,24 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://tricky-books-run.loca.lt";
+    const API_BASE_URL = "https://shaky-baboons-bow.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
-
-    if (!tg.isExpanded) {
-        tg.MainButton.setText('Развернуть на весь экран');
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-            tg.expand();
-        });
-    }
-
-    tg.onEvent('viewportChanged', () => {
-        if (tg.isExpanded) {
-            tg.MainButton.hide();
-        }
-    });
 
     const elements = {
         loader: document.getElementById('loader-container'),
@@ -57,6 +43,37 @@ document.addEventListener('DOMContentLoaded', () => {
         availableDates: new Set(), selectedDateForModal: null,
     };
 
+    const cache = new Map();
+
+    async function fetchWithCache(path, options = {}, cacheDurationMs) {
+        if (cache.has(path)) {
+            const { timestamp, data } = cache.get(path);
+            if (Date.now() - timestamp < cacheDurationMs) {
+                console.log(`[CACHE] Returning cached data for: ${path}`);
+                return data;
+            }
+        }
+
+        console.log(`[API] Fetching new data for: ${path}`);
+        const response = await fetch(`${API_BASE_URL}${path}`, {
+            headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers },
+            ...options
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Ошибка сети' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (cacheDurationMs > 0) {
+            cache.set(path, { timestamp: Date.now(), data });
+        }
+
+        return data;
+    }
+
     function showView(viewName) {
         elements.listView.classList.toggle('active', viewName === 'list');
         elements.mapView.classList.toggle('active', viewName === 'map');
@@ -64,27 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.showMapBtn.classList.toggle('active', viewName === 'map');
     }
 
-    async function fetchAPI(path, options = {}) {
-        options.headers = { 'Bypass-Tunnel-Reminder': 'true', ...options.headers };
-        try {
-            const response = await fetch(API_BASE_URL + path, options);
-            if (!response.ok) throw new Error((await response.json()).error || 'Ошибка сети');
-            return response.json();
-        } catch (error) {
-            tg.showAlert(`Ошибка: ${error.message}`);
-            throw error;
-        }
-    }
-
     function showLoader(show) { elements.loader.classList.toggle('hidden', !show); }
 
     async function init() {
         showLoader(true);
         try {
-            const data = await fetchAPI('/api/locations');
+            const data = await fetchWithCache('/api/locations', {}, 3600000); // Кэш локаций на 1 час
             state.locations = data.locations;
             renderLocations(state.locations);
             showView('list');
+        } catch(e) {
+             tg.showAlert(`Ошибка загрузки: ${e.message}`);
         } finally {
             showLoader(false);
         }
@@ -105,12 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.map) return;
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
-                center: [55.751244, 37.618423], zoom: 10,
-                controls: []
-            }, {
-                suppressMapOpenBlock: true
-            });
+                center: [55.751244, 37.618423], zoom: 10, controls: []
+            }, { suppressMapOpenBlock: true });
+
             if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');
+
             const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');
             state.locations.forEach(loc => {
                 if (loc.coords && loc.coords[0] !== 0) {
@@ -165,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAndRenderCalendarInPanel() {
         elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
         try {
-            const data = await fetchAPI(`/api/calendar?location_id=${state.selectedLocationId}`);
+            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000); // Кэш календаря на 5 минут
             state.availableDates = new Set(data.available_dates);
             renderCalendarsInPanel();
         } catch (error) {
@@ -240,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
         try {
-            const data = await fetchAPI(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`);
+            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000); // Кэш сессий на 1 минуту
             renderSessions(data);
         } catch (error) {
             elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки</p>`;
@@ -273,11 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ok) {
                 try {
                     tg.MainButton.showProgress();
-                    await fetchAPI('/api/notify', {
+                    await fetchWithCache('/api/notify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ initData: tg.initData, location_id: state.selectedLocationId, date: state.selectedDateForModal })
-                    });
+                    }, 0); // Не кэшируем этот запрос
                     tg.close();
                 } catch(error) {
                     tg.showAlert(`Не удалось добавить уведомление`);

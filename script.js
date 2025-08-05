@@ -6,6 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
     tg.expand();
 
+    if (!tg.isExpanded) {
+        tg.MainButton.setText('Развернуть на весь экран');
+        tg.MainButton.show();
+        tg.MainButton.onClick(() => {
+            tg.expand();
+        });
+    }
+
+    tg.onEvent('viewportChanged', () => {
+        if (tg.isExpanded) {
+            tg.MainButton.hide();
+        }
+    });
+
     const elements = {
         loader: document.getElementById('loader-container'),
         headerTitle: document.getElementById('header-title'),
@@ -92,10 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
                 center: [55.751244, 37.618423], zoom: 10,
-                // ИЗМЕНЕНО: Убираем все стандартные кнопки с карты
                 controls: []
             }, {
-                // ИЗМЕНЕНО: Убираем кнопку "Открыть в Яндекс.Картах"
                 suppressMapOpenBlock: true
             });
             if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');

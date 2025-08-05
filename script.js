@@ -88,13 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showView(viewName) {
-        elements.listView.classList.toggle('active', viewName === 'list');
-        elements.mapView.classList.toggle('active', viewName === 'map');
-        elements.showListBtn.classList.toggle('active', viewName === 'list');
-        elements.showMapBtn.classList.toggle('active', viewName === 'map');
+        if (elements.listView) elements.listView.classList.toggle('active', viewName === 'list');
+        if (elements.mapView) elements.mapView.classList.toggle('active', viewName === 'map');
+        if (elements.showListBtn) elements.showListBtn.classList.toggle('active', viewName === 'list');
+        if (elements.showMapBtn) elements.showMapBtn.classList.toggle('active', viewName === 'map');
     }
 
-    function showLoader(show) { elements.loader.classList.toggle('hidden', !show); }
+    function showLoader(show) {
+        if(elements.loader) elements.loader.classList.toggle('hidden', !show);
+    }
 
     async function init() {
         showLoader(true);
@@ -105,13 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showView('list');
         } catch(e) {
              tg.showAlert(`Ошибка загрузки: ${e.message}`);
-             elements.loader.innerHTML = 'Не удалось загрузить локации.';
+             if (elements.loader) elements.loader.innerHTML = 'Не удалось загрузить локации.';
         } finally {
             showLoader(false);
         }
     }
 
     function renderLocations(locations) {
+        if (!elements.locationList) return;
         elements.locationList.innerHTML = '';
         locations.forEach(loc => {
             const card = document.createElement('div');
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initMap() {
-        if (state.map) return;
+        if (state.map || !elements.mapContainer) return;
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
                 center: [55.751244, 37.618423], zoom: 10, controls: []
@@ -178,8 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideMapLocationPanel() {
-        elements.mapPanel.content.classList.remove('expanded');
-        elements.mapPanel.overlay.classList.remove('visible');
+        if (elements.mapPanel.overlay) elements.mapPanel.overlay.classList.remove('visible');
     }
 
     function showInfoPanel(locData) {
@@ -213,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideInfoPanel() {
-        elements.infoPanel.overlay.classList.remove('visible');
+        if(elements.infoPanel.overlay) elements.infoPanel.overlay.classList.remove('visible');
     }
 
     async function loadAndRenderCalendarInPanel() {
@@ -342,42 +344,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    elements.showListBtn.addEventListener('click', () => showView('list'));
-    elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
-    elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
-    elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
-    elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
-    elements.modal.notifyBtn.addEventListener('click', addNotification);
+    if (elements.showListBtn) elements.showListBtn.addEventListener('click', () => showView('list'));
+    if (elements.showMapBtn) elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
+    if (elements.modal.closeBtn) elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
+    if (elements.modal.overlay) elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
+    if (elements.mapPanel.overlay) elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
+    if (elements.modal.notifyBtn) elements.modal.notifyBtn.addEventListener('click', addNotification);
 
-    elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
-    elements.infoPanel.closeBtn.addEventListener('click', () => {
+    if (elements.infoPanel.backBtn) elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
+    if (elements.infoPanel.closeBtn) elements.infoPanel.closeBtn.addEventListener('click', () => {
         hideInfoPanel();
         hideMapLocationPanel();
     });
-    elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel(); });
+    if (elements.infoPanel.overlay) elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel(); });
 
-    let startY;
-    elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
-        startY = e.touches[0].clientY;
-        elements.mapPanel.content.style.transition = 'none';
-    }, { passive: true });
-    elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
-        const currentY = e.touches[0].clientY;
-        const diff = currentY - startY;
-        if (diff > 0) {
-            elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
-        }
-    }, { passive: true });
-    elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
-        const endY = e.changedTouches[0].clientY;
-        elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
-        if (endY - startY > 100) {
-            hideMapLocationPanel();
-        }
-        setTimeout(() => {
-            elements.mapPanel.content.style.transform = '';
-        }, 0);
-    });
+    if (elements.mapPanel.dragHandle) {
+        let startY;
+        elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            if (elements.mapPanel.content) elements.mapPanel.content.style.transition = 'none';
+        }, { passive: true });
+        elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
+            const currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            if (diff > 0 && elements.mapPanel.content) {
+                elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
+            }
+        }, { passive: true });
+        elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            if (elements.mapPanel.content) {
+                elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                if (endY - startY > 100) {
+                    hideMapLocationPanel();
+                }
+                setTimeout(() => {
+                    elements.mapPanel.content.style.transform = '';
+                }, 0);
+            }
+        });
+    }
 
     init();
 });

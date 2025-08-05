@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000);
             renderSessions(data);
         } catch (error) {
-            elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки</p>`;
+            elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки сеансов</p>`;
             elements.modal.bookingBtn.classList.add('hidden');
         }
     }
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSessions(data) {
         const grid = elements.modal.sessionsGrid;
         grid.innerHTML = '';
-        if (data.sessions && data.sessions.length > 0) {
+        if (data && data.sessions && data.sessions.length > 0) {
             grid.classList.remove('empty');
             data.sessions.forEach(s => {
                 const item = document.createElement('div');

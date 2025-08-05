@@ -61,10 +61,11 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; text-align: center; wi
 .panel-header-top h3 { flex-grow: 1; text-align: center; margin: 0; font-size: 17px; font-weight: 600; padding: 0 10px; }
 .panel-header-button { background: none; border: none; cursor: pointer; padding: 10px; flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 .panel-header-button.back-btn { color: var(--tg-theme-button-color); display: none; }
+#info-panel-content .panel-header-button.back-btn { display: flex; }
 .panel-content.expanded .panel-header-button.back-btn { display: flex; }
 .panel-header-button.close-btn { color: var(--tg-theme-hint-color); font-size: 28px; }
-#map-location-panel .panel-header h3 { font-size: 22px; }
-#map-location-panel .panel-header p { margin-top: 4px; font-size: 16px; color: var(--tg-theme-hint-color); }
+#map-location-panel .panel-header h3 { font-size: 22px; font-weight: 700; }
+#map-location-panel .panel-header p { margin-top: 4px; font-size: 16px; color: var(--tg-theme-hint-color); text-align: center; }
 .panel-calendar-container { display: none; overflow-y: auto; flex-grow: 1; padding: 0 8px; }
 .panel-content.expanded .panel-calendar-container { display: block; }
 .panel-body { margin-bottom: 16px; flex-shrink: 0; }

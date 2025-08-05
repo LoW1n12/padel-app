@@ -39,6 +39,8 @@ LOCATIONS_CONFIG = {
         'booking_link': 'https://moscowpdl.ru/#courtrental',
         'description': 'Корты от MoscowPDL',
         'coords': [55.712837, 37.564221],
+        'address': 'ул. Лужники, 24, стр. 21',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'display_in_case': 'в Лужниках',
         'courts': {
             "Открытый корт": {
@@ -59,6 +61,8 @@ LOCATIONS_CONFIG = {
         'display_in_case': 'в Лужниках-2',
         'description': 'Корты от Padel Friends',
         'coords': [55.716468, 37.552248],
+        'address': 'ул. Лужники, 24, стр. 1',
+        "images": ["img/lush2.1.jpg", "img/lush2.2.jpg", "img/lush2.3.jpg"],
         'company_id': 'b861100',
         'location_id': '804153',
         'courts': {
@@ -70,6 +74,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от Lunda Padel',
         'coords': [55.748242, 37.497522],
+        'address': 'ул. Большая Филёвская, 20',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Дело спорт)',
         'company_id': "b911781",
@@ -83,6 +89,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от Lunda Padel',
         'coords': [55.741579, 37.468123],
+        'address': 'ул. Большая Филёвская, 32',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'на Филях (Звезда)',
         'company_id': "b911781",
@@ -95,6 +103,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от Академии Будущего',
         'coords': [55.743714, 37.460835],
+        'address': 'рядом с ул. Нижние Мнёвники, 10',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://n1165596.yclients.com/company/1149911',
         'display_in_case': 'в Терехово',
         'company_id': "n1165596",
@@ -111,6 +121,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от Академии Будущего',
         'coords': [55.683397, 37.632922],
+        'address': '1-й Нагатинский пр., 2, стр. 17',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://n1165596.yclients.com/company/1109937/',
         'display_in_case': 'на Нагатинской',
         'company_id': 'n1165596',
@@ -132,6 +144,8 @@ LOCATIONS_CONFIG = {
         'booking_link': 'https://padlhub.ru/padel_skolkovo',
         'description': 'Корты от Академии Будущего',
         'coords': [55.704218, 37.403130],
+        'address': 'Сколковское шоссе, с2',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'display_in_case': 'в Сколково',
         'courts': {
             "Закрытый корт": {
@@ -151,6 +165,8 @@ LOCATIONS_CONFIG = {
         'booking_link': 'https://padlhub.ru/padl_yas',
         'description': 'Корты от Академии Будущего',
         'coords': [55.601745, 37.536140],
+        'address': 'ул. Паустовского, 4А',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'display_in_case': 'в Ясенево',
         'courts': {
             "Закрытый корт": {
@@ -164,6 +180,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от Lunda Padel',
         'coords': [55.880989, 37.450331],
+        'address': 'ул. Правобережная, 1Б',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://lundapadel.ru/?ysclid=mdnkr2vxjk957475916',
         'display_in_case': 'в Химках',
         'company_id': "b911781",
@@ -179,6 +197,8 @@ LOCATIONS_CONFIG = {
         'booking_link': 'https://paripadel.ru/admiral#booking',
         'description': 'Корты от Pari в яхт-клубе',
         'coords': [55.969227, 37.536880],
+        'address': 'ул. Адмиральская, вл1с1',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'display_in_case': 'в Долгопрудном',
         'courts': {
             "Закрытый корт": {
@@ -192,6 +212,8 @@ LOCATIONS_CONFIG = {
         'api_type': 'yclients_fili',
         'description': 'Корты от A33',
         'coords': [55.891536, 37.710010],
+        'address': 'ул. Трудовая, 33',
+        "images": ["img/lush1.jpg", "img/lush2.jpg", "img/lush3.jpg"],
         'booking_link': 'https://b918666.yclients.com/company/855029/personal/select-time?o=m-1',
         'display_in_case': 'в Мытищах',
         'company_id': "b918666",

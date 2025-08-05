@@ -38,8 +38,11 @@
         <div id="map-location-panel" class="panel-content">
             <div id="panel-drag-handle" class="panel-drag-handle"></div>
             <div class="panel-header">
+                <!-- ИЗМЕНЕНО: Добавлена стрелка "назад" -->
+                <button id="panel-back-btn" class="panel-back-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
                 <h3 id="panel-location-name">Название локации</h3>
-                <!-- ИЗМЕНЕНО: Добавлен крестик -->
                 <button id="panel-close-btn" class="panel-close-button">&times;</button>
                 <p id="panel-location-description">Описание</p>
             </div>
@@ -66,7 +69,6 @@
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
-                <!-- ИЗМЕНЕНО: Убрана стрелка "назад" -->
                 <h3 id="modal-date-header">Доступные сеансы</h3>
                 <button id="close-modal-btn" class="close-button">&times;</button>
             </header>
@@ -80,12 +82,12 @@
         </div>
     </div>
 
-    <!-- !!! ВАЖНО: Замените "ВАШ_API_КЛЮЧ" на ваш реальный ключ от Яндекс.Карт !!! -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU" type="text/javascript"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 

@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elements = {
         loader: document.getElementById('loader-container'),
-        headerTitle: document.getElementById('header-title'),
         viewSwitcher: document.getElementById('view-switcher'),
         showListBtn: document.getElementById('show-list-btn'),
         showMapBtn: document.getElementById('show-map-btn'),
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mapView: document.getElementById('map-view'),
         locationList: document.getElementById('location-list'),
         mapContainer: document.getElementById('map'),
-        calendarInPanel: document.getElementById('calendar-wrapper'),
         mapPanel: {
             overlay: document.getElementById('map-panel-overlay'),
             content: document.getElementById('map-location-panel'),
@@ -25,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
             backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
+            calendarContainer: document.getElementById('panel-calendar-container'),
+            calendarWrapper: document.getElementById('calendar-wrapper'),
             selectBtn: document.getElementById('panel-select-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
             infoBtn: document.getElementById('panel-info-btn'),
@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         infoPanel: {
             overlay: document.getElementById('info-panel-overlay'),
+            content: document.getElementById('info-panel-content'),
             backBtn: document.getElementById('info-panel-back-btn'),
             closeBtn: document.getElementById('info-panel-close-btn'),
             imageSlider: document.getElementById('info-image-slider'),
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let state = {
         locations: [], map: null, selectedLocationId: null, selectedLocationName: '',
-        availableDates: new Set(), selectedDateForModal: null,
+        availableDates: new Set(), selectedDateForModal: null, currentLocData: null
     };
 
     const cache = new Map();
@@ -115,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'location-card';
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => showMapLocationPanel(loc, true));
+            card.addEventListener('click', () => showMapLocationPanel(loc));
             elements.locationList.appendChild(card);
         });
     }
@@ -151,9 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return newBtn;
     }
 
-    function showMapLocationPanel(locData, expand = false) {
+    function showMapLocationPanel(locData) {
+        state.currentLocData = locData;
         state.selectedLocationId = locData.id;
-        state.selectedLocationName = locData.name;
+
         elements.mapPanel.name.textContent = locData.name;
         elements.mapPanel.description.textContent = locData.description;
 
@@ -169,11 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapPanel.backBtn = setupButton(elements.mapPanel.backBtn, () => {
             elements.mapPanel.content.classList.remove('expanded');
         });
-
-        if(expand) {
-             elements.mapPanel.content.classList.add('expanded');
-             loadAndRenderCalendarInPanel();
-        }
 
         elements.mapPanel.overlay.classList.add('visible');
     }
@@ -218,28 +215,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadAndRenderCalendarInPanel() {
-        elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
+        elements.mapPanel.calendarWrapper.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
         try {
             const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000);
             state.availableDates = new Set(data.available_dates);
             renderCalendarsInPanel();
         } catch (error) {
-            elements.calendarInPanel.innerHTML = '<p style="text-align:center;color:var(--tg-theme-hint-color);">Не удалось загрузить календарь</p>';
+            elements.mapPanel.calendarWrapper.innerHTML = '<p style="text-align:center;color:var(--tg-theme-hint-color);">Не удалось загрузить календарь</p>';
         }
     }
 
     function renderCalendarsInPanel() {
-        elements.calendarInPanel.innerHTML = '';
+        elements.mapPanel.calendarWrapper.innerHTML = '';
         const today = new Date();
         const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        elements.calendarInPanel.appendChild(createCalendarInstance(firstMonth));
+        elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(firstMonth));
 
         const limitDate = new Date();
         limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
 
         if (limitDate.getMonth() !== today.getMonth()) {
             const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            elements.calendarInPanel.appendChild(createCalendarInstance(secondMonth));
+            elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(secondMonth));
         }
     }
 
@@ -349,11 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
+
     elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
     elements.infoPanel.closeBtn.addEventListener('click', () => {
         hideInfoPanel();
         hideMapLocationPanel();
     });
+    elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel(); });
 
     let startY;
     elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {

@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             content: document.getElementById('map-location-panel'),
             dragHandle: document.getElementById('panel-drag-handle'),
             closeBtn: document.getElementById('panel-close-btn'),
+            backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
             selectBtn: document.getElementById('panel-select-btn'),
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function init() {
         showLoader(true);
         try {
-            const data = await fetchWithCache('/api/locations', {}, 3600000);
+            const data = await fetchWithCache('/api/locations', {}, 3600000); // Кэш локаций на 1 час
             state.locations = data.locations;
             renderLocations(state.locations);
             showView('list');
@@ -154,6 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
         elements.mapPanel.taxiBtn = setupButton(elements.mapPanel.taxiBtn, () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
         elements.mapPanel.closeBtn = setupButton(elements.mapPanel.closeBtn, hideMapLocationPanel);
+        elements.mapPanel.backBtn = setupButton(elements.mapPanel.backBtn, () => {
+            elements.mapPanel.content.classList.remove('expanded');
+        });
 
         if(expand) {
              elements.mapPanel.content.classList.add('expanded');
@@ -171,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAndRenderCalendarInPanel() {
         elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
         try {
-            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000);
+            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000); // Кэш календаря на 5 минут
             state.availableDates = new Set(data.available_dates);
             renderCalendarsInPanel();
         } catch (error) {
@@ -246,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
         try {
-            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000);
+            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000); // Кэш сессий на 1 минуту
             renderSessions(data);
         } catch (error) {
             elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки</p>`;

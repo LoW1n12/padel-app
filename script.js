@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://crazy-eyes-see.loca.lt";;
+    const API_BASE_URL = "https://quiet-schools-fail.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 

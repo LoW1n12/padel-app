@@ -87,7 +87,7 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; text-align: center; wi
 .calendar-day.is-today span { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color) !important; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 .calendar-day.is-today.has-sessions::after { background-color: var(--tg-theme-button-text-color); }
 
-.modal-overlay { z-index: 1001; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; pointer-events: none; }
+.modal-overlay { z-index: 1002; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; pointer-events: none; }
 .modal-overlay.visible { opacity: 1; visibility: visible; pointer-events: all; }
 .modal-content { background: var(--tg-theme-secondary-bg-color); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; transform: translateY(100%); transition: transform 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
 .modal-overlay.visible .modal-content { transform: translateY(0); }
@@ -106,6 +106,7 @@ header h1 { margin: 0; font-size: 24px; font-weight: 700; text-align: center; wi
 .session-slot-details { font-size: 12px; color: var(--tg-theme-hint-color); word-wrap: break-word; }
 .no-sessions-message { color: var(--tg-theme-hint-color); }
 
+#info-panel-overlay { z-index: 1001; }
 #info-panel-content { height: 85vh; max-height: 85vh; background-color: var(--tg-theme-bg-color); }
 #info-panel-content .panel-header { margin-bottom: 0; }
 .info-panel-body { flex-grow: 1; overflow-y: auto; }

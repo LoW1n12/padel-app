@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://few-melons-read.loca.lt";
+    const API_BASE_URL = "https://crazy-eyes-see.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let state = {
-        locations: [], map: null, selectedLocationId: null, selectedLocationName: '',
+        locations: [], map: null, selectedLocationId: null,
         availableDates: new Set(), selectedDateForModal: null, currentLocData: null
     };
 
@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showView('list');
         } catch(e) {
              tg.showAlert(`Ошибка загрузки: ${e.message}`);
+             elements.loader.innerHTML = 'Не удалось загрузить локации.';
         } finally {
             showLoader(false);
         }
@@ -146,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupButton(buttonElement, listener) {
+        if (!buttonElement) return;
         const newBtn = buttonElement.cloneNode(true);
         buttonElement.parentNode.replaceChild(newBtn, buttonElement);
         newBtn.addEventListener('click', listener);
@@ -182,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showInfoPanel(locData) {
         elements.infoPanel.locationName.textContent = locData.name;
-        elements.infoPanel.locationAddress.textContent = locData.address || '';
+        elements.infoPanel.locationAddress.textContent = locData.address || 'Адрес не указан';
         elements.infoPanel.locationDescription.textContent = locData.description;
 
         elements.infoPanel.imageSlider.innerHTML = '';

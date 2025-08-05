@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://shaky-baboons-bow.loca.lt";
+    const API_BASE_URL = "https://bright-cats-end.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             description: document.getElementById('panel-location-description'),
             selectBtn: document.getElementById('panel-select-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
-            taxiBtn: document.getElementById('panel-taxi-btn'),
+            infoBtn: document.getElementById('panel-info-btn'),
         },
         modal: {
             overlay: document.getElementById('detail-modal'),
@@ -36,6 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionsGrid: document.getElementById('sessions-grid'),
             notifyBtn: document.getElementById('add-notification-btn'),
             bookingBtn: document.getElementById('booking-link-btn'),
+        },
+        infoPanel: {
+            overlay: document.getElementById('info-panel-overlay'),
+            backBtn: document.getElementById('info-panel-back-btn'),
+            closeBtn: document.getElementById('info-panel-close-btn'),
+            imageSlider: document.getElementById('info-image-slider'),
+            locationName: document.getElementById('info-location-name'),
+            locationAddress: document.getElementById('info-location-address'),
+            locationDescription: document.getElementById('info-location-description'),
+            routeBtn: document.getElementById('info-route-btn'),
+            bookingBtn: document.getElementById('info-booking-btn'),
         }
     };
 
@@ -87,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function init() {
         showLoader(true);
         try {
-            const data = await fetchWithCache('/api/locations', {}, 3600000); // Кэш локаций на 1 час
+            const data = await fetchWithCache('/api/locations', {}, 3600000);
             state.locations = data.locations;
             renderLocations(state.locations);
             showView('list');
@@ -153,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadAndRenderCalendarInPanel();
         });
         elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
-        elements.mapPanel.taxiBtn = setupButton(elements.mapPanel.taxiBtn, () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
+        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, () => showInfoPanel(locData));
         elements.mapPanel.closeBtn = setupButton(elements.mapPanel.closeBtn, hideMapLocationPanel);
         elements.mapPanel.backBtn = setupButton(elements.mapPanel.backBtn, () => {
             elements.mapPanel.content.classList.remove('expanded');
@@ -172,10 +183,44 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapPanel.overlay.classList.remove('visible');
     }
 
+    function showInfoPanel(locData) {
+        elements.infoPanel.locationName.textContent = locData.name;
+        elements.infoPanel.locationAddress.textContent = locData.address || '';
+        elements.infoPanel.locationDescription.textContent = locData.description;
+
+        elements.infoPanel.imageSlider.innerHTML = '';
+        if (locData.images && locData.images.length > 0) {
+            locData.images.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                elements.infoPanel.imageSlider.appendChild(img);
+            });
+            elements.infoPanel.imageSlider.style.display = 'flex';
+        } else {
+            elements.infoPanel.imageSlider.style.display = 'none';
+        }
+
+        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
+
+        const bookingLink = locData.booking_link || null;
+        if (bookingLink) {
+            elements.infoPanel.bookingBtn.href = bookingLink;
+            elements.infoPanel.bookingBtn.style.display = 'block';
+        } else {
+            elements.infoPanel.bookingBtn.style.display = 'none';
+        }
+
+        elements.infoPanel.overlay.classList.add('visible');
+    }
+
+    function hideInfoPanel() {
+        elements.infoPanel.overlay.classList.remove('visible');
+    }
+
     async function loadAndRenderCalendarInPanel() {
         elements.calendarInPanel.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
         try {
-            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000); // Кэш календаря на 5 минут
+            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000);
             state.availableDates = new Set(data.available_dates);
             renderCalendarsInPanel();
         } catch (error) {
@@ -250,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
         elements.modal.overlay.classList.add('visible');
         try {
-            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000); // Кэш сессий на 1 минуту
+            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000);
             renderSessions(data);
         } catch (error) {
             elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки</p>`;
@@ -304,6 +349,11 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
+    elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
+    elements.infoPanel.closeBtn.addEventListener('click', () => {
+        hideInfoPanel();
+        hideMapLocationPanel();
+    });
 
     let startY;
     elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {

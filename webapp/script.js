@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             content: document.getElementById('map-location-panel'),
             dragHandle: document.getElementById('panel-drag-handle'),
             closeBtn: document.getElementById('panel-close-btn'),
+            backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
             selectBtn: document.getElementById('panel-select-btn'),
@@ -54,10 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        console.log(`[API] Fetching new data for: ${path}`);
+        console.count(`[API Request] ${path}`);
+
         const response = await fetch(`${API_BASE_URL}${path}`, {
-            headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers },
-            ...options
+            headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers }, ...options
         });
 
         if (!response.ok) {
@@ -154,6 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
         elements.mapPanel.taxiBtn = setupButton(elements.mapPanel.taxiBtn, () => tg.openLink(`https://go.yandex/route?end-lat=${locData.coords[0]}&end-lon=${locData.coords[1]}`));
         elements.mapPanel.closeBtn = setupButton(elements.mapPanel.closeBtn, hideMapLocationPanel);
+        elements.mapPanel.backBtn = setupButton(elements.mapPanel.backBtn, () => {
+            elements.mapPanel.content.classList.remove('expanded');
+        });
 
         if(expand) {
              elements.mapPanel.content.classList.add('expanded');
@@ -283,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ initData: tg.initData, location_id: state.selectedLocationId, date: state.selectedDateForModal })
-                    }, 0); // Не кэшируем этот запрос
+                    }, 0);
                     tg.close();
                 } catch(error) {
                     tg.showAlert(`Не удалось добавить уведомление`);

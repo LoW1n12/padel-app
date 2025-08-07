@@ -59,8 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cache = new Map();
 
     async function fetchWithCache(path, options = {}, cacheDurationMs) {
-        if (cache.has(path)) {
-            const { timestamp, data } = cache.get(path);
+        const fullPath = `${API_BASE_URL}${path}`;
+        if (cache.has(fullPath)) {
+            const { timestamp, data } = cache.get(fullPath);
             if (Date.now() - timestamp < cacheDurationMs) {
                 console.log(`[CACHE] Returning cached data for: ${path}`);
                 return data;
@@ -69,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.count(`[API Request] ${path}`);
 
-        const response = await fetch(`${API_BASE_URL}${path}`, {
+        const response = await fetch(fullPath, {
             headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers }, ...options
         });
 
@@ -81,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
 
         if (cacheDurationMs > 0) {
-            cache.set(path, { timestamp: Date.now(), data });
+            cache.set(fullPath, { timestamp: Date.now(), data });
         }
 
         return data;
@@ -203,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
 
-        const bookingLink = state.locations.find(l => l.id === locData.id)?.booking_link || null;
+        const bookingLink = locData.booking_link || null;
         if (bookingLink) {
             elements.infoPanel.bookingBtn.href = bookingLink;
             elements.infoPanel.bookingBtn.style.display = 'flex';
@@ -307,6 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSessions(data) {
         const grid = elements.modal.sessionsGrid;
         grid.innerHTML = '';
+
+        const bookingLink = data.booking_link || state.currentLocData.booking_link;
+        elements.modal.bookingBtn.classList.toggle('hidden', !bookingLink);
+        if(bookingLink) {
+            elements.modal.bookingBtn.href = bookingLink;
+        }
+
         if (data && data.sessions && data.sessions.length > 0) {
             grid.classList.remove('empty');
             data.sessions.forEach(s => {
@@ -315,13 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
                 grid.appendChild(item);
             });
-            const bookingLink = state.locations.find(l => l.id === state.selectedLocationId)?.booking_link;
-            elements.modal.bookingBtn.classList.toggle('hidden', !bookingLink);
-            if(bookingLink) elements.modal.bookingBtn.href = bookingLink;
         } else {
             grid.classList.add('empty');
             grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;
-            elements.modal.bookingBtn.classList.add('hidden');
         }
     }
 

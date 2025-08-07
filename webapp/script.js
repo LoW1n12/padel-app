@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         mapView: document.getElementById('map-view'),
         locationList: document.getElementById('location-list'),
         mapContainer: document.getElementById('map'),
+        panelOverlay: document.getElementById('panel-overlay'),
         mapPanel: {
-            overlay: document.getElementById('map-panel-overlay'),
             content: document.getElementById('map-location-panel'),
-            dragHandle: document.getElementById('panel-drag-handle'),
+            dragHandle: document.querySelector('#map-location-panel .panel-drag-handle'),
             closeBtn: document.getElementById('panel-close-btn'),
             backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
@@ -29,17 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
             routeBtn: document.getElementById('panel-route-btn'),
             infoBtn: document.getElementById('panel-info-btn'),
         },
-        modal: {
-            overlay: document.getElementById('detail-modal'),
-            closeBtn: document.getElementById('close-modal-btn'),
-            dateHeader: document.getElementById('modal-date-header'),
-            sessionsGrid: document.getElementById('sessions-grid'),
-            notifyBtn: document.getElementById('add-notification-btn'),
-            bookingBtn: document.getElementById('booking-link-btn'),
-        },
         infoPanel: {
-            overlay: document.getElementById('info-panel-overlay'),
-            content: document.getElementById('info-panel-content'),
+            content: document.getElementById('info-panel'),
             backBtn: document.getElementById('info-panel-back-btn'),
             closeBtn: document.getElementById('info-panel-close-btn'),
             imageSlider: document.getElementById('info-image-slider'),
@@ -48,6 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
             locationDescription: document.getElementById('info-location-description'),
             routeBtn: document.getElementById('info-route-btn'),
             bookingBtn: document.getElementById('info-booking-btn'),
+        },
+        modal: {
+            overlay: document.getElementById('detail-modal'),
+            closeBtn: document.getElementById('close-modal-btn'),
+            dateHeader: document.getElementById('modal-date-header'),
+            sessionsGrid: document.getElementById('sessions-grid'),
+            notifyBtn: document.getElementById('add-notification-btn'),
+            bookingBtn: document.getElementById('booking-link-btn'),
         }
     };
 
@@ -60,43 +59,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchWithCache(path, options = {}, cacheDurationMs) {
         const fullPath = `${API_BASE_URL}${path}`;
-        if (cache.has(fullPath)) {
+        if (cache.has(fullPath) && cacheDurationMs > 0) {
             const { timestamp, data } = cache.get(fullPath);
             if (Date.now() - timestamp < cacheDurationMs) {
                 console.log(`[CACHE] Returning cached data for: ${path}`);
                 return data;
             }
         }
-
         console.count(`[API Request] ${path}`);
-
         const response = await fetch(fullPath, {
             headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers }, ...options
         });
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: 'Ошибка сети' }));
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
-
         const data = await response.json();
-
         if (cacheDurationMs > 0) {
             cache.set(fullPath, { timestamp: Date.now(), data });
         }
-
         return data;
     }
 
     function showView(viewName) {
-        if (elements.listView) elements.listView.classList.toggle('active', viewName === 'list');
-        if (elements.mapView) elements.mapView.classList.toggle('active', viewName === 'map');
-        if (elements.showListBtn) elements.showListBtn.classList.toggle('active', viewName === 'list');
-        if (elements.showMapBtn) elements.showMapBtn.classList.toggle('active', viewName === 'map');
+        elements.listView.classList.toggle('active', viewName === 'list');
+        elements.mapView.classList.toggle('active', viewName === 'map');
+        elements.showListBtn.classList.toggle('active', viewName === 'list');
+        elements.showMapBtn.classList.toggle('active', viewName === 'map');
     }
 
     function showLoader(show) {
-        if(elements.loader) elements.loader.classList.toggle('hidden', !show);
+        elements.loader.classList.toggle('hidden', !show);
     }
 
     async function init() {
@@ -108,14 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
             showView('list');
         } catch(e) {
              tg.showAlert(`Ошибка загрузки: ${e.message}`);
-             if (elements.loader) elements.loader.innerHTML = 'Не удалось загрузить локации.';
+             elements.loader.innerHTML = 'Не удалось загрузить локации.';
         } finally {
             showLoader(false);
         }
     }
 
     function renderLocations(locations) {
-        if (!elements.locationList) return;
         elements.locationList.innerHTML = '';
         locations.forEach(loc => {
             const card = document.createElement('div');
@@ -127,14 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initMap() {
-        if (state.map || !elements.mapContainer) return;
+        if (state.map) return;
         ymaps.ready(() => {
             state.map = new ymaps.Map(elements.mapContainer, {
                 center: [55.751244, 37.618423], zoom: 10, controls: []
             }, { suppressMapOpenBlock: true });
-
             if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');
-
             const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');
             state.locations.forEach(loc => {
                 if (loc.coords && loc.coords[0] !== 0) {
@@ -164,28 +154,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.mapPanel.name.textContent = locData.name;
         elements.mapPanel.description.textContent = locData.description;
-
         elements.mapPanel.content.classList.remove('expanded');
+        elements.mapPanel.content.style.display = 'flex';
+        elements.infoPanel.content.style.display = 'none';
 
         elements.mapPanel.selectBtn = setupButton(elements.mapPanel.selectBtn, () => {
             elements.mapPanel.content.classList.add('expanded');
             loadAndRenderCalendarInPanel();
         });
         elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
-        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, () => showInfoPanel(locData));
-        elements.mapPanel.closeBtn = setupButton(elements.mapPanel.closeBtn, hideMapLocationPanel);
-        elements.mapPanel.backBtn = setupButton(elements.mapPanel.backBtn, () => {
-            elements.mapPanel.content.classList.remove('expanded');
-        });
+        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, showInfoPanel);
 
-        elements.mapPanel.overlay.classList.add('visible');
+        elements.panelOverlay.classList.add('visible');
     }
 
-    function hideMapLocationPanel() {
-        if (elements.mapPanel.overlay) elements.mapPanel.overlay.classList.remove('visible');
+    function closeAllPanels() {
+        elements.panelOverlay.classList.remove('visible');
     }
 
-    function showInfoPanel(locData) {
+    function showInfoPanel() {
+        const locData = state.currentLocData;
+        if (!locData) return;
+
         elements.infoPanel.locationName.textContent = locData.name;
         elements.infoPanel.locationAddress.textContent = locData.address || 'Адрес не указан';
         elements.infoPanel.locationDescription.textContent = locData.description;
@@ -204,19 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
 
-        const bookingLink = locData.booking_link || null;
-        if (bookingLink) {
-            elements.infoPanel.bookingBtn.href = bookingLink;
+        if (locData.booking_link) {
+            elements.infoPanel.bookingBtn.href = locData.booking_link;
             elements.infoPanel.bookingBtn.style.display = 'flex';
         } else {
             elements.infoPanel.bookingBtn.style.display = 'none';
         }
 
-        elements.infoPanel.overlay.classList.add('visible');
+        elements.mapPanel.content.style.display = 'none';
+        elements.infoPanel.content.style.display = 'flex';
     }
 
     function hideInfoPanel() {
-        if(elements.infoPanel.overlay) elements.infoPanel.overlay.classList.remove('visible');
+        elements.infoPanel.content.style.display = 'none';
+        elements.mapPanel.content.style.display = 'flex';
     }
 
     async function loadAndRenderCalendarInPanel() {
@@ -235,10 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(firstMonth));
-
         const limitDate = new Date();
         limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
-
         if (limitDate.getMonth() !== today.getMonth()) {
             const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
             elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(secondMonth));
@@ -309,9 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = elements.modal.sessionsGrid;
         grid.innerHTML = '';
 
-        const bookingLink = data.booking_link || state.currentLocData.booking_link;
+        const bookingLink = state.currentLocData.booking_link;
         elements.modal.bookingBtn.classList.toggle('hidden', !bookingLink);
-        if(bookingLink) {
+        if (bookingLink) {
             elements.modal.bookingBtn.href = bookingLink;
         }
 
@@ -349,46 +338,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (elements.showListBtn) elements.showListBtn.addEventListener('click', () => showView('list'));
-    if (elements.showMapBtn) elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
-    if (elements.modal.closeBtn) elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
-    if (elements.modal.overlay) elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
-    if (elements.mapPanel.overlay) elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) hideMapLocationPanel(); });
-    if (elements.modal.notifyBtn) elements.modal.notifyBtn.addEventListener('click', addNotification);
+    // --- Event Listeners ---
+    elements.showListBtn.addEventListener('click', () => showView('list'));
+    elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
 
-    if (elements.infoPanel.backBtn) elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
-    if (elements.infoPanel.closeBtn) elements.infoPanel.closeBtn.addEventListener('click', () => {
-        hideInfoPanel();
-        hideMapLocationPanel();
+    elements.panelOverlay.addEventListener('click', (e) => { if (e.target === elements.panelOverlay) closeAllPanels(); });
+
+    elements.mapPanel.closeBtn.addEventListener('click', closeAllPanels);
+    elements.mapPanel.backBtn.addEventListener('click', () => {
+        elements.mapPanel.content.classList.remove('expanded');
     });
-    if (elements.infoPanel.overlay) elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel(); });
 
-    if (elements.mapPanel.dragHandle) {
-        let startY;
-        elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            if (elements.mapPanel.content) elements.mapPanel.content.style.transition = 'none';
-        }, { passive: true });
-        elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
-            const currentY = e.touches[0].clientY;
-            const diff = currentY - startY;
-            if (diff > 0 && elements.mapPanel.content) {
-                elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
-            }
-        }, { passive: true });
-        elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
-            const endY = e.changedTouches[0].clientY;
-            if (elements.mapPanel.content) {
-                elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
-                if (endY - startY > 100) {
-                    hideMapLocationPanel();
-                }
-                setTimeout(() => {
-                    elements.mapPanel.content.style.transform = '';
-                }, 0);
-            }
-        });
-    }
+    elements.infoPanel.closeBtn.addEventListener('click', closeAllPanels);
+    elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
+
+    elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
+    elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
+    elements.modal.notifyBtn.addEventListener('click', addNotification);
+
+    let startY, initialPanelHeight;
+    elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        elements.mapPanel.content.style.transition = 'none';
+    }, { passive: true });
+    elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
+        }
+    }, { passive: true });
+    elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (endY - startY > 100) {
+            closeAllPanels();
+        }
+        setTimeout(() => {
+            elements.mapPanel.content.style.transform = '';
+        }, 0);
+    });
 
     init();
 });

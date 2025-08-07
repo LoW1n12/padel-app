@@ -33,14 +33,15 @@
         </main>
     </div>
 
-    <!-- Панель для карты -->
-    <div id="map-panel-overlay" class="panel-overlay">
+    <!-- ЕДИНАЯ ПАНЕЛЬ ДЛЯ ВСЕГО -->
+    <div id="panel-overlay" class="panel-overlay">
+        <!-- Панель №1: Календарь -->
         <div id="map-location-panel" class="panel-content">
             <div class="panel-drag-handle"></div>
             <div class="panel-header">
                 <div class="panel-header-top">
                     <button id="panel-back-btn" class="panel-header-button back-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                     <h3 id="panel-location-name">Название локации</h3>
                     <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
@@ -64,32 +65,13 @@
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- Модальное окно для сессий -->
-    <div id="detail-modal" class="modal-overlay">
-        <div class="modal-content">
-            <header class="modal-header">
-                <h3 id="modal-date-header">Доступные сеансы</h3>
-                <button id="close-modal-btn" class="close-button">&times;</button>
-            </header>
-            <div class="modal-body">
-                <div id="sessions-grid" class="sessions-grid"></div>
-            </div>
-            <footer class="modal-footer">
-                <a id="booking-link-btn" href="#" target="_blank" class="action-button green hidden">🎾 Забронировать</a>
-                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Панель с информацией -->
-    <div id="info-panel-overlay" class="panel-overlay">
-        <div id="info-panel-content" class="panel-content">
+        <!-- Панель №2: Информация -->
+        <div id="info-panel" class="panel-content">
              <div class="panel-header">
                 <div class="panel-header-top">
                     <button id="info-panel-back-btn" class="panel-header-button back-btn">
-                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                         <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                     <h3 id="info-panel-title">Информация</h3>
                     <button id="info-panel-close-btn" class="panel-header-button close-btn">&times;</button>
@@ -106,6 +88,23 @@
             <footer class="info-panel-footer">
                 <button id="info-route-btn" class="info-action-button">Как добраться</button>
                 <a id="info-booking-btn" href="#" target="_blank" class="info-action-button primary">Забронировать</a>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Модальное окно для сессий -->
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3 id="modal-date-header">Доступные сеансы</h3>
+                <button id="close-modal-btn" class="close-button">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div id="sessions-grid" class="sessions-grid"></div>
+            </div>
+            <footer class="modal-footer">
+                <a id="booking-link-btn" href="#" target="_blank" class="action-button green hidden">🎾 Забронировать</a>
+                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
             </footer>
         </div>
     </div>

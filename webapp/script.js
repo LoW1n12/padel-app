@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://tall-humans-hammer.loca.lt";
+    const API_BASE_URL = "https://heavy-drinks-share.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 
@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             content: document.getElementById('info-panel-content'),
             backBtn: document.getElementById('info-panel-back-btn'),
             closeBtn: document.getElementById('info-panel-close-btn'),
+            imageSliderWrapper: document.getElementById('info-image-slider-wrapper'),
             imageSlider: document.getElementById('info-image-slider'),
             locationName: document.getElementById('info-location-name'),
             locationAddress: document.getElementById('info-location-address'),
@@ -160,22 +161,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showInfoPanel(locData) {
         elements.infoPanel.locationName.textContent = locData.name;
-        elements.infoPanel.locationAddress.textContent = locData.address || 'Адрес не указан';
-        elements.infoPanel.locationDescription.textContent = locData.description;
+
+        const addressEl = elements.infoPanel.locationAddress;
+        addressEl.classList.remove('is-placeholder');
+        if (locData.address) {
+            addressEl.textContent = locData.address;
+        } else {
+            addressEl.textContent = 'Адрес не указан';
+            addressEl.classList.add('is-placeholder');
+        }
+
+        elements.infoPanel.locationDescription.textContent = locData.description || '';
 
         elements.infoPanel.imageSlider.innerHTML = '';
         if (locData.images && locData.images.length > 0) {
             locData.images.forEach(src => {
                 const img = document.createElement('img');
                 img.src = src;
+                img.alt = locData.name;
                 elements.infoPanel.imageSlider.appendChild(img);
             });
-            elements.infoPanel.imageSlider.style.display = 'flex';
+            elements.infoPanel.imageSliderWrapper.style.display = 'block';
         } else {
-            elements.infoPanel.imageSlider.style.display = 'none';
+            elements.infoPanel.imageSliderWrapper.style.display = 'none';
         }
 
-        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`));
+        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => {
+            if (locData.coords) {
+                tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`);
+            }
+        });
 
         if (locData.booking_link) {
             elements.infoPanel.bookingBtn.href = locData.booking_link;

@@ -8,29 +8,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elements = {
         loader: document.getElementById('loader-container'),
-        viewSwitcher: document.getElementById('view-switcher'),
         showListBtn: document.getElementById('show-list-btn'),
         showMapBtn: document.getElementById('show-map-btn'),
         listView: document.getElementById('list-view'),
         mapView: document.getElementById('map-view'),
         locationList: document.getElementById('location-list'),
         mapContainer: document.getElementById('map'),
-        panelOverlay: document.getElementById('panel-overlay'),
+
         mapPanel: {
+            overlay: document.getElementById('map-panel-overlay'),
             content: document.getElementById('map-location-panel'),
             dragHandle: document.querySelector('#map-location-panel .panel-drag-handle'),
             closeBtn: document.getElementById('panel-close-btn'),
             backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
-            calendarContainer: document.getElementById('panel-calendar-container'),
             calendarWrapper: document.getElementById('calendar-wrapper'),
             selectBtn: document.getElementById('panel-select-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
             infoBtn: document.getElementById('panel-info-btn'),
         },
         infoPanel: {
-            content: document.getElementById('info-panel'),
+            overlay: document.getElementById('info-panel-overlay'),
+            content: document.getElementById('info-panel-content'),
             backBtn: document.getElementById('info-panel-back-btn'),
             closeBtn: document.getElementById('info-panel-close-btn'),
             imageSlider: document.getElementById('info-image-slider'),
@@ -62,11 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cache.has(fullPath) && cacheDurationMs > 0) {
             const { timestamp, data } = cache.get(fullPath);
             if (Date.now() - timestamp < cacheDurationMs) {
-                console.log(`[CACHE] Returning cached data for: ${path}`);
                 return data;
             }
         }
-        console.count(`[API Request] ${path}`);
         const response = await fetch(fullPath, {
             headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers }, ...options
         });
@@ -121,18 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function initMap() {
         if (state.map) return;
         ymaps.ready(() => {
-            state.map = new ymaps.Map(elements.mapContainer, {
-                center: [55.751244, 37.618423], zoom: 10, controls: []
-            }, { suppressMapOpenBlock: true });
+            state.map = new ymaps.Map(elements.mapContainer, { center: [55.751244, 37.618423], zoom: 10, controls: [] }, { suppressMapOpenBlock: true });
             if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');
             const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');
             state.locations.forEach(loc => {
-                if (loc.coords && loc.coords[0] !== 0) {
-                    const placemark = new ymaps.Placemark(loc.coords, {}, {
-                        iconLayout: customMarkerLayout,
-                        interactivityModel: 'default#transparent',
-                        iconShape: { type: 'Rectangle', coordinates: [[-20, -20], [20, 20]] }
-                    });
+                if (loc.coords && loc.coords.length === 2) {
+                    const placemark = new ymaps.Placemark(loc.coords, {}, { iconLayout: customMarkerLayout, interactivityModel: 'default#transparent', iconShape: { type: 'Rectangle', coordinates: [[-20, -20], [20, 20]] } });
                     placemark.events.add('click', () => showMapLocationPanel(loc));
                     state.map.geoObjects.add(placemark);
                 }
@@ -155,27 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapPanel.name.textContent = locData.name;
         elements.mapPanel.description.textContent = locData.description;
         elements.mapPanel.content.classList.remove('expanded');
-        elements.mapPanel.content.style.display = 'flex';
-        elements.infoPanel.content.style.display = 'none';
 
         elements.mapPanel.selectBtn = setupButton(elements.mapPanel.selectBtn, () => {
             elements.mapPanel.content.classList.add('expanded');
             loadAndRenderCalendarInPanel();
         });
-        elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
-        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, showInfoPanel);
+        elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`));
+        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, () => showInfoPanel(locData));
 
-        elements.panelOverlay.classList.add('visible');
+        elements.mapPanel.overlay.classList.add('visible');
     }
 
-    function closeAllPanels() {
-        elements.panelOverlay.classList.remove('visible');
-    }
-
-    function showInfoPanel() {
-        const locData = state.currentLocData;
-        if (!locData) return;
-
+    function showInfoPanel(locData) {
         elements.infoPanel.locationName.textContent = locData.name;
         elements.infoPanel.locationAddress.textContent = locData.address || 'Адрес не указан';
         elements.infoPanel.locationDescription.textContent = locData.description;
@@ -192,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.infoPanel.imageSlider.style.display = 'none';
         }
 
-        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords[0]},${locData.coords[1]}`));
+        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`));
 
         if (locData.booking_link) {
             elements.infoPanel.bookingBtn.href = locData.booking_link;
@@ -200,14 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             elements.infoPanel.bookingBtn.style.display = 'none';
         }
-
-        elements.mapPanel.content.style.display = 'none';
-        elements.infoPanel.content.style.display = 'flex';
+        elements.infoPanel.overlay.classList.add('visible');
     }
 
     function hideInfoPanel() {
-        elements.infoPanel.content.style.display = 'none';
-        elements.mapPanel.content.style.display = 'flex';
+        elements.infoPanel.overlay.classList.remove('visible');
     }
 
     async function loadAndRenderCalendarInPanel() {
@@ -342,21 +322,19 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.showListBtn.addEventListener('click', () => showView('list'));
     elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
 
-    elements.panelOverlay.addEventListener('click', (e) => { if (e.target === elements.panelOverlay) closeAllPanels(); });
+    elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) elements.mapPanel.overlay.classList.remove('visible') });
+    elements.mapPanel.closeBtn.addEventListener('click', () => elements.mapPanel.overlay.classList.remove('visible'));
+    elements.mapPanel.backBtn.addEventListener('click', () => elements.mapPanel.content.classList.remove('expanded'));
 
-    elements.mapPanel.closeBtn.addEventListener('click', closeAllPanels);
-    elements.mapPanel.backBtn.addEventListener('click', () => {
-        elements.mapPanel.content.classList.remove('expanded');
-    });
-
-    elements.infoPanel.closeBtn.addEventListener('click', closeAllPanels);
+    elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel() });
+    elements.infoPanel.closeBtn.addEventListener('click', hideInfoPanel);
     elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
 
     elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
     elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
     elements.modal.notifyBtn.addEventListener('click', addNotification);
 
-    let startY, initialPanelHeight;
+    let startY;
     elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
         startY = e.touches[0].clientY;
         elements.mapPanel.content.style.transition = 'none';
@@ -372,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const endY = e.changedTouches[0].clientY;
         elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
         if (endY - startY > 100) {
-            closeAllPanels();
+            elements.mapPanel.overlay.classList.remove('visible');
         }
         setTimeout(() => {
             elements.mapPanel.content.style.transform = '';

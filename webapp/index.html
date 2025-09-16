@@ -33,9 +33,8 @@
         </main>
     </div>
 
-    <!-- ЕДИНАЯ ПАНЕЛЬ ДЛЯ ВСЕГО -->
-    <div id="panel-overlay" class="panel-overlay">
-        <!-- Панель №1: Календарь -->
+    <!-- Панель для карты -->
+    <div id="map-panel-overlay" class="panel-overlay">
         <div id="map-location-panel" class="panel-content">
             <div class="panel-drag-handle"></div>
             <div class="panel-header">
@@ -65,9 +64,11 @@
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Панель №2: Информация -->
-        <div id="info-panel" class="panel-content">
+    <!-- Панель с информацией -->
+    <div id="info-panel-overlay" class="panel-overlay">
+        <div id="info-panel-content" class="panel-content">
              <div class="panel-header">
                 <div class="panel-header-top">
                     <button id="info-panel-back-btn" class="panel-header-button back-btn">
@@ -109,7 +110,7 @@
         </div>
     </div>
 
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU" type="text/javascript"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ&lang=ru_RU" type="text/javascript"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://proud-hounds-accept.loca.lt";
+    const API_BASE_URL = "https://bitter-donuts-drop.loca.lt";
     const CALENDAR_DAYS_TO_SHOW = 20;
     const tg = window.Telegram.WebApp;
 

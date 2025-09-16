@@ -112,10 +112,19 @@ def auth_required(handler):
 # ================== ОБРАБОТЧИКИ API-ЭНДПОИНТОВ ==================
 
 async def get_locations(request):
-    """Возвращает список локаций для фронтенда."""
+    """Возвращает полный список локаций для фронтенда."""
     logger.info("WebApp API: Получен запрос на /api/locations")
-    locations_list = [{"id": key, "name": key, "description": value.get('description', ''),"coords": value.get('coords', [0, 0])} for key, value in
-                      LOCATIONS_CONFIG.items()]
+    locations_list = []
+    for key, value in LOCATIONS_CONFIG.items():
+        locations_list.append({
+            "id": key,
+            "name": key,
+            "description": value.get('description', ''),
+            "coords": value.get('coords'),
+            "address": value.get('address'),
+            "images": value.get('images', []),
+            "booking_link": value.get('booking_link')
+        })
     return web.json_response({"locations": locations_list})
 
 
@@ -178,8 +187,7 @@ async def get_sessions_for_date(request):
 
             sessions.append({"time": time_str, "details": " | ".join(sorted(details_parts))})
 
-    booking_link = LOCATIONS_CONFIG.get(location_id, {}).get('booking_link', '')
-    return web.json_response({"sessions": sessions, "booking_link": booking_link})
+    return web.json_response({"sessions": sessions})
 
 
 @auth_required

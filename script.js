@@ -1,12 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://wise-jars-live.loca.lt";
-    const CALENDAR_DAYS_TO_SHOW = 20;
+    const API_BASE_URL = "https://clever-zebras-retire.loca.lt";
     const tg = window.Telegram.WebApp;
-
     tg.ready();
     tg.expand();
 
+    let state = {
+        staticLocations: [],
+        availability: new Map(),
+        selectedDate: null,
+        selectedTime: null,
+        map: null,
+        placemarks: new Map(),
+    };
+
     const elements = {
+        dateTimeView: document.getElementById('date-time-view'),
+        dateSelector: document.getElementById('date-selector'),
+        timeSelector: document.getElementById('time-selector'),
+        anyTimeCheckbox: document.getElementById('any-time-checkbox'),
+        findCourtsBtn: document.getElementById('find-courts-btn'),
+        locationsView: document.getElementById('locations-view'),
+        backToPickerBtn: document.getElementById('back-to-picker-btn'),
+        selectedFilterDisplay: document.getElementById('selected-filter-display'),
         loader: document.getElementById('loader-container'),
         showListBtn: document.getElementById('show-list-btn'),
         showMapBtn: document.getElementById('show-map-btn'),
@@ -14,105 +29,140 @@ document.addEventListener('DOMContentLoaded', () => {
         mapView: document.getElementById('map-view'),
         locationList: document.getElementById('location-list'),
         mapContainer: document.getElementById('map'),
-
-        mapPanel: {
-            overlay: document.getElementById('map-panel-overlay'),
-            content: document.getElementById('map-location-panel'),
-            dragHandle: document.querySelector('#map-location-panel .panel-drag-handle'),
+        panel: {
+            overlay: document.getElementById('location-panel-overlay'),
+            content: document.getElementById('location-panel-content'),
             closeBtn: document.getElementById('panel-close-btn'),
-            backBtn: document.getElementById('panel-back-btn'),
             name: document.getElementById('panel-location-name'),
             description: document.getElementById('panel-location-description'),
-            calendarWrapper: document.getElementById('calendar-wrapper'),
-            selectBtn: document.getElementById('panel-select-btn'),
+            statusMsg: document.getElementById('panel-status-message'),
+            actionBtn: document.getElementById('panel-action-btn'),
             routeBtn: document.getElementById('panel-route-btn'),
             infoBtn: document.getElementById('panel-info-btn'),
         },
-        infoPanel: {
-            overlay: document.getElementById('info-panel-overlay'),
-            content: document.getElementById('info-panel-content'),
-            backBtn: document.getElementById('info-panel-back-btn'),
-            closeBtn: document.getElementById('info-panel-close-btn'),
-            imageSliderWrapper: document.getElementById('info-image-slider-wrapper'),
-            imageSlider: document.getElementById('info-image-slider'),
-            locationName: document.getElementById('info-location-name'),
-            locationAddress: document.getElementById('info-location-address'),
-            locationDescription: document.getElementById('info-location-description'),
-            routeBtn: document.getElementById('info-route-btn'),
-            bookingBtn: document.getElementById('info-booking-btn'),
-        },
-        modal: {
-            overlay: document.getElementById('detail-modal'),
-            closeBtn: document.getElementById('close-modal-btn'),
-            dateHeader: document.getElementById('modal-date-header'),
-            sessionsGrid: document.getElementById('sessions-grid'),
-            notifyBtn: document.getElementById('add-notification-btn'),
-            bookingBtn: document.getElementById('booking-link-btn'),
-        }
     };
 
-    let state = {
-        locations: [], map: null, selectedLocationId: null,
-        availableDates: new Set(), selectedDateForModal: null, currentLocData: null
-    };
-
-    const cache = new Map();
-
-    async function fetchWithCache(path, options = {}, cacheDurationMs) {
-        const fullPath = `${API_BASE_URL}${path}`;
-        if (cache.has(fullPath) && cacheDurationMs > 0) {
-            const { timestamp, data } = cache.get(fullPath);
-            if (Date.now() - timestamp < cacheDurationMs) {
-                return data;
-            }
-        }
-        const response = await fetch(fullPath, {
-            headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers }, ...options
+    async function fetchAPI(path, options = {}) {
+        const response = await fetch(`${API_BASE_URL}${path}`, {
+            headers: { 'Bypass-Tunnel-Reminder': 'true', ...options.headers },
+            ...options
         });
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'Ошибка сети' }));
+            const errorData = await response.json().catch(() => ({ message: 'Network error' }));
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        if (cacheDurationMs > 0) {
-            cache.set(fullPath, { timestamp: Date.now(), data });
-        }
-        return data;
+        return response.json();
     }
 
     function showView(viewName) {
-        elements.listView.classList.toggle('active', viewName === 'list');
-        elements.mapView.classList.toggle('active', viewName === 'map');
-        elements.showListBtn.classList.toggle('active', viewName === 'list');
-        elements.showMapBtn.classList.toggle('active', viewName === 'map');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewName).classList.add('active');
     }
 
-    function showLoader(show) {
-        elements.loader.classList.toggle('hidden', !show);
+    function formatShortDate(date) {
+        return date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric' });
     }
 
-    async function init() {
-        showLoader(true);
+    function init() {
+        setupDateTimePickers();
+        loadStaticLocations();
+        addEventListeners();
+        showView('date-time-view');
+    }
+
+    async function loadStaticLocations() {
         try {
-            const data = await fetchWithCache('/api/locations', {}, 3600000);
-            state.locations = data.locations;
-            renderLocations(state.locations);
-            showView('list');
-        } catch(e) {
-             tg.showAlert(`Ошибка загрузки: ${e.message}`);
-             elements.loader.innerHTML = 'Не удалось загрузить локации.';
-        } finally {
-            showLoader(false);
+            const data = await fetchAPI('/api/locations');
+            state.staticLocations = data.locations;
+        } catch (e) {
+            tg.showAlert(`Failed to load location base information: ${e.message}`);
         }
     }
 
-    function renderLocations(locations) {
+    function setupDateTimePickers() {
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const item = document.createElement('div');
+            item.className = 'selector-item date-item';
+            item.dataset.date = date.toISOString().split('T')[0];
+            item.innerHTML = `<span class="day-name">${formatShortDate(date)}</span><span class="day-num">${date.getDate()}</span>`;
+            elements.dateSelector.appendChild(item);
+        }
+
+        for (let hour = 7; hour <= 22; hour++) {
+            const time = `${String(hour).padStart(2, '0')}:00`;
+            const item = document.createElement('div');
+            item.className = 'selector-item time-item';
+            item.dataset.time = time;
+            item.textContent = time;
+            elements.timeSelector.appendChild(item);
+        }
+
+        elements.dateSelector.firstElementChild.classList.add('selected');
+        elements.timeSelector.children[5].classList.add('selected'); // Default to ~12:00
+        state.selectedDate = elements.dateSelector.firstElementChild.dataset.date;
+        state.selectedTime = elements.timeSelector.children[5].dataset.time;
+    }
+
+    function handleDateTimeSelection(event) {
+        const target = event.target.closest('.selector-item');
+        if (!target) return;
+
+        const parent = target.parentElement;
+        parent.querySelector('.selected')?.classList.remove('selected');
+        target.classList.add('selected');
+        
+        if (parent.id === 'date-selector') {
+            state.selectedDate = target.dataset.date;
+        } else if (parent.id === 'time-selector') {
+            state.selectedTime = target.dataset.time;
+            elements.anyTimeCheckbox.checked = false;
+        }
+    }
+
+    async function findAndShowCourts() {
+        showView('locations-view');
+        elements.loader.classList.remove('hidden');
+        elements.listView.classList.remove('active');
+        elements.mapView.classList.remove('active');
         elements.locationList.innerHTML = '';
-        locations.forEach(loc => {
+
+        const time = elements.anyTimeCheckbox.checked ? 'any' : state.selectedTime;
+        state.selectedTime = time;
+        
+        const dateObj = new Date(state.selectedDate);
+        dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+        const timeText = time === 'any' ? 'Любое время' : time;
+        elements.selectedFilterDisplay.textContent = `${formatShortDate(dateObj)}, ${timeText}`;
+
+        try {
+            const data = await fetchAPI(`/api/availability?date=${state.selectedDate}&time=${time}`);
+            state.availability = new Map(data.availability.map(item => [item.id, { is_available: item.is_available }]));
+            
+            renderLocations();
+            showSubView('list');
+            initMap();
+            updateMapMarkers();
+
+        } catch (e) {
+            tg.showAlert(`Search error: ${e.message}`);
+            elements.loader.classList.add('hidden');
+            elements.loader.innerHTML = '<p>Search failed.</p>';
+        } finally {
+            elements.loader.classList.add('hidden');
+        }
+    }
+
+    function renderLocations() {
+        elements.locationList.innerHTML = '';
+        state.staticLocations.forEach(loc => {
+            const isAvailable = state.availability.get(loc.id)?.is_available || false;
             const card = document.createElement('div');
-            card.className = 'location-card';
+            card.className = `location-card ${isAvailable ? '' : 'unavailable'}`;
             card.innerHTML = `<h2>${loc.name}</h2><p>${loc.description}</p>`;
-            card.addEventListener('click', () => showMapLocationPanel(loc));
+            card.addEventListener('click', () => showLocationPanel(loc.id));
             elements.locationList.appendChild(card);
         });
     }
@@ -120,212 +170,93 @@ document.addEventListener('DOMContentLoaded', () => {
     function initMap() {
         if (state.map) return;
         ymaps.ready(() => {
-            state.map = new ymaps.Map(elements.mapContainer, { center: [55.751244, 37.618423], zoom: 10, controls: [] }, { suppressMapOpenBlock: true });
-            if (tg.colorScheme === 'dark') elements.mapContainer.classList.add('dark-theme');
-            const customMarkerLayout = ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>');
-            state.locations.forEach(loc => {
-                if (loc.coords && loc.coords.length === 2) {
-                    const placemark = new ymaps.Placemark(loc.coords, {}, { iconLayout: customMarkerLayout, interactivityModel: 'default#transparent', iconShape: { type: 'Rectangle', coordinates: [[-20, -20], [20, 20]] } });
-                    placemark.events.add('click', () => showMapLocationPanel(loc));
+            state.map = new ymaps.Map(elements.mapContainer, { center: [55.75, 37.62], zoom: 10, controls: [] });
+            state.staticLocations.forEach(loc => {
+                if (loc.coords) {
+                    const placemark = new ymaps.Placemark(loc.coords, {}, {
+                        iconLayout: ymaps.templateLayoutFactory.createClass('<div class="custom-marker">🎾</div>')
+                    });
+                    placemark.events.add('click', () => showLocationPanel(loc.id));
                     state.map.geoObjects.add(placemark);
+                    state.placemarks.set(loc.id, placemark);
                 }
             });
         });
     }
-
-    function setupButton(buttonElement, listener) {
-        if (!buttonElement) return;
-        const newBtn = buttonElement.cloneNode(true);
-        buttonElement.parentNode.replaceChild(newBtn, buttonElement);
-        newBtn.addEventListener('click', listener);
-        return newBtn;
-    }
-
-    function showMapLocationPanel(locData) {
-        state.currentLocData = locData;
-        state.selectedLocationId = locData.id;
-
-        elements.mapPanel.name.textContent = locData.name;
-        elements.mapPanel.description.textContent = locData.description;
-        elements.mapPanel.content.classList.remove('expanded');
-
-        elements.mapPanel.selectBtn = setupButton(elements.mapPanel.selectBtn, () => {
-            elements.mapPanel.content.classList.add('expanded');
-            loadAndRenderCalendarInPanel();
-        });
-        elements.mapPanel.routeBtn = setupButton(elements.mapPanel.routeBtn, () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`));
-        elements.mapPanel.infoBtn = setupButton(elements.mapPanel.infoBtn, () => showInfoPanel(locData));
-
-        elements.mapPanel.overlay.classList.add('visible');
-    }
-
-    function showInfoPanel(locData) {
-        elements.infoPanel.locationName.textContent = locData.name;
-
-        const addressEl = elements.infoPanel.locationAddress;
-        addressEl.classList.remove('is-placeholder');
-        if (locData.address) {
-            addressEl.textContent = locData.address;
-        } else {
-            addressEl.textContent = 'Адрес не указан';
-            addressEl.classList.add('is-placeholder');
-        }
-
-        elements.infoPanel.locationDescription.textContent = locData.description || '';
-
-        elements.infoPanel.imageSlider.innerHTML = '';
-        if (locData.images && locData.images.length > 0) {
-            locData.images.forEach(src => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = locData.name;
-                elements.infoPanel.imageSlider.appendChild(img);
-            });
-            elements.infoPanel.imageSliderWrapper.style.display = 'block';
-        } else {
-            elements.infoPanel.imageSliderWrapper.style.display = 'none';
-        }
-
-        elements.infoPanel.routeBtn = setupButton(elements.infoPanel.routeBtn, () => {
-            if (locData.coords) {
-                tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`);
+    
+    function updateMapMarkers() {
+        if (!state.map) return;
+        state.placemarks.forEach((placemark, locId) => {
+            const isAvailable = state.availability.get(locId)?.is_available || false;
+            const iconElement = placemark.getIconContent();
+            if (iconElement && iconElement.parentElement) {
+                iconElement.parentElement.classList.toggle('unavailable', !isAvailable);
             }
         });
+    }
+    
+    function showSubView(viewName) {
+        elements.listView.classList.toggle('active', viewName === 'list');
+        elements.mapView.classList.toggle('active', viewName === 'map');
+        elements.showListBtn.classList.toggle('active', viewName === 'list');
+        elements.showMapBtn.classList.toggle('active', viewName === 'map');
+    }
 
-        if (locData.booking_link) {
-            elements.infoPanel.bookingBtn.href = locData.booking_link;
-            elements.infoPanel.bookingBtn.style.display = 'flex';
+    function showLocationPanel(locationId) {
+        const locData = state.staticLocations.find(l => l.id === locationId);
+        if (!locData) return;
+
+        const isAvailable = state.availability.get(locationId)?.is_available || false;
+
+        elements.panel.name.textContent = locData.name;
+        elements.panel.description.textContent = locData.description;
+        
+        const statusMsg = elements.panel.statusMsg;
+        statusMsg.style.display = 'block';
+        statusMsg.className = `panel-status-message ${isAvailable ? 'available' : 'unavailable'}`;
+        statusMsg.textContent = isAvailable ? 'Slots available for the selected time' : 'All slots are taken for the selected time';
+
+        const actionBtn = elements.panel.actionBtn;
+        if (isAvailable) {
+            actionBtn.textContent = '🎾 Book';
+            actionBtn.className = 'panel-button book';
+            actionBtn.onclick = () => {
+                if(locData.booking_link) tg.openLink(locData.booking_link);
+                else tg.showAlert('Booking link not found.');
+            };
         } else {
-            elements.infoPanel.bookingBtn.style.display = 'none';
-        }
-        elements.infoPanel.overlay.classList.add('visible');
-    }
-
-    function hideInfoPanel() {
-        elements.infoPanel.overlay.classList.remove('visible');
-    }
-
-    async function loadAndRenderCalendarInPanel() {
-        elements.mapPanel.calendarWrapper.innerHTML = '<div class="loader-container" style="height:200px;"><div class="padel-loader"></div></div>';
-        try {
-            const data = await fetchWithCache(`/api/calendar?location_id=${state.selectedLocationId}`, {}, 300000);
-            state.availableDates = new Set(data.available_dates);
-            renderCalendarsInPanel();
-        } catch (error) {
-            elements.mapPanel.calendarWrapper.innerHTML = '<p style="text-align:center;color:var(--tg-theme-hint-color);">Не удалось загрузить календарь</p>';
-        }
-    }
-
-    function renderCalendarsInPanel() {
-        elements.mapPanel.calendarWrapper.innerHTML = '';
-        const today = new Date();
-        const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(firstMonth));
-        const limitDate = new Date();
-        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
-        if (limitDate.getMonth() !== today.getMonth()) {
-            const secondMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            elements.mapPanel.calendarWrapper.appendChild(createCalendarInstance(secondMonth));
-        }
-    }
-
-    function createCalendarInstance(dateForMonth) {
-        const instance = document.createElement('div');
-        instance.className = 'calendar-instance';
-        const header = document.createElement('div');
-        header.className = 'calendar-header';
-        header.innerHTML = `<h2>${dateForMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h2>`;
-        const weekdays = document.createElement('div');
-        weekdays.className = 'weekdays-grid';
-        weekdays.innerHTML = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div>${d}</div>`).join('');
-        const grid = document.createElement('div');
-        grid.className = 'calendar-grid';
-
-        const year = dateForMonth.getFullYear();
-        const month = dateForMonth.getMonth();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const limitDate = new Date(today);
-        limitDate.setDate(today.getDate() + CALENDAR_DAYS_TO_SHOW);
-
-        let firstDayOfWeek = new Date(year, month, 1).getDay();
-        if (firstDayOfWeek === 0) firstDayOfWeek = 7;
-
-        for (let i = 1; i < firstDayOfWeek; i++) { grid.innerHTML += `<div class="calendar-day is-placeholder"></div>`; }
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayCell = document.createElement('div');
-            const currentDate = new Date(year, month, day);
-            dayCell.className = 'calendar-day';
-            dayCell.innerHTML = `<span>${day}</span>`;
-
-            if (currentDate >= today && currentDate < limitDate) {
-                const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                if (state.availableDates.has(fullDateStr)) dayCell.classList.add('has-sessions');
-                dayCell.addEventListener('click', () => onDateClick(fullDateStr));
-            } else {
-                dayCell.classList.add('is-disabled');
-            }
-            if (currentDate.getTime() === today.getTime()) dayCell.classList.add('is-today');
-
-            grid.appendChild(dayCell);
-        }
-        instance.append(header, weekdays, grid);
-        return instance;
-    }
-
-    async function onDateClick(dateStr) {
-        state.selectedDateForModal = dateStr;
-        elements.modal.dateHeader.textContent = new Date(dateStr.replace(/-/g, '/')).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-        elements.modal.sessionsGrid.innerHTML = '<div class="loader-container" style="height: 100px;"><div class="padel-loader" style="width: 25px; height: 25px; border-width: 3px;"></div></div>';
-        elements.modal.overlay.classList.add('visible');
-        try {
-            const data = await fetchWithCache(`/api/sessions?location_id=${state.selectedLocationId}&date=${dateStr}`, {}, 60000);
-            renderSessions(data);
-        } catch (error) {
-            elements.modal.sessionsGrid.innerHTML = `<p class="no-sessions-message">Ошибка загрузки сеансов</p>`;
-            elements.modal.bookingBtn.classList.add('hidden');
-        }
-    }
-
-    function renderSessions(data) {
-        const grid = elements.modal.sessionsGrid;
-        grid.innerHTML = '';
-
-        const bookingLink = state.currentLocData.booking_link;
-        elements.modal.bookingBtn.classList.toggle('hidden', !bookingLink);
-        if (bookingLink) {
-            elements.modal.bookingBtn.href = bookingLink;
+            actionBtn.textContent = '🔔 Notify me';
+            actionBtn.className = 'panel-button notify';
+            actionBtn.onclick = () => addNotification(locationId);
         }
 
-        if (data && data.sessions && data.sessions.length > 0) {
-            grid.classList.remove('empty');
-            data.sessions.forEach(s => {
-                const item = document.createElement('div');
-                item.className = 'session-slot';
-                item.innerHTML = `<div class="session-slot-time">${s.time}</div><div class="session-slot-details">${s.details}</div>`;
-                grid.appendChild(item);
-            });
-        } else {
-            grid.classList.add('empty');
-            grid.innerHTML = `<p class="no-sessions-message">Свободных сеансов нет</p>`;
-        }
-    }
+        elements.panel.routeBtn.onclick = () => tg.openLink(`https://yandex.ru/maps/?rtext=~${locData.coords.join(',')}`);
+        elements.panel.infoBtn.onclick = () => tg.showAlert("Info panel is under construction."); // Placeholder
 
-    async function addNotification() {
-        tg.showConfirm(`Добавить отслеживание на ${new Date(state.selectedDateForModal.replace(/-/g, '/')).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}?`, async (ok) => {
+        elements.panel.overlay.classList.add('visible');
+    }
+    
+    async function addNotification(locationId) {
+        const timeText = state.selectedTime === 'any' ? 'any time' : state.selectedTime;
+        const dateText = new Date(state.selectedDate).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'});
+        
+        tg.showConfirm(`Create a notification for "${locationId}" on ${dateText}, ${timeText}?`, async (ok) => {
             if (ok) {
+                tg.MainButton.showProgress();
                 try {
-                    tg.MainButton.showProgress();
-                    await fetchWithCache('/api/notify', {
+                    await fetchAPI('/api/notify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ initData: tg.initData, location_id: state.selectedLocationId, date: state.selectedDateForModal })
-                    }, 0);
+                        body: JSON.stringify({
+                            initData: tg.initData,
+                            location_id: locationId,
+                            date: state.selectedDate,
+                            time: state.selectedTime
+                        })
+                    });
                     tg.close();
-                } catch(error) {
-                    tg.showAlert(`Не удалось добавить уведомление`);
+                } catch (e) {
+                    tg.showAlert(`Failed to add notification: ${e.message}`);
                 } finally {
                     tg.MainButton.hideProgress();
                 }
@@ -333,44 +264,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Event Listeners ---
-    elements.showListBtn.addEventListener('click', () => showView('list'));
-    elements.showMapBtn.addEventListener('click', () => { showView('map'); initMap(); });
+    function addEventListeners() {
+        elements.dateSelector.addEventListener('click', handleDateTimeSelection);
+        elements.timeSelector.addEventListener('click', handleDateTimeSelection);
+        elements.anyTimeCheckbox.addEventListener('change', (e) => {
+            elements.timeSelector.style.opacity = e.target.checked ? 0.4 : 1;
+            elements.timeSelector.style.pointerEvents = e.target.checked ? 'none' : 'auto';
+        });
 
-    elements.mapPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.mapPanel.overlay) elements.mapPanel.overlay.classList.remove('visible') });
-    elements.mapPanel.closeBtn.addEventListener('click', () => elements.mapPanel.overlay.classList.remove('visible'));
-    elements.mapPanel.backBtn.addEventListener('click', () => elements.mapPanel.content.classList.remove('expanded'));
+        elements.findCourtsBtn.addEventListener('click', findAndShowCourts);
+        elements.backToPickerBtn.addEventListener('click', () => showView('date-time-view'));
+        
+        elements.showListBtn.addEventListener('click', () => showSubView('list'));
+        elements.showMapBtn.addEventListener('click', () => showSubView('map'));
 
-    elements.infoPanel.overlay.addEventListener('click', (e) => { if (e.target === elements.infoPanel.overlay) hideInfoPanel() });
-    elements.infoPanel.closeBtn.addEventListener('click', hideInfoPanel);
-    elements.infoPanel.backBtn.addEventListener('click', hideInfoPanel);
-
-    elements.modal.closeBtn.addEventListener('click', () => elements.modal.overlay.classList.remove('visible'));
-    elements.modal.overlay.addEventListener('click', (e) => { if (e.target === elements.modal.overlay) elements.modal.overlay.classList.remove('visible'); });
-    elements.modal.notifyBtn.addEventListener('click', addNotification);
-
-    let startY;
-    elements.mapPanel.dragHandle.addEventListener('touchstart', (e) => {
-        startY = e.touches[0].clientY;
-        elements.mapPanel.content.style.transition = 'none';
-    }, { passive: true });
-    elements.mapPanel.dragHandle.addEventListener('touchmove', (e) => {
-        const currentY = e.touches[0].clientY;
-        const diff = currentY - startY;
-        if (diff > 0) {
-            elements.mapPanel.content.style.transform = `translateY(${diff}px)`;
-        }
-    }, { passive: true });
-    elements.mapPanel.dragHandle.addEventListener('touchend', (e) => {
-        const endY = e.changedTouches[0].clientY;
-        elements.mapPanel.content.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
-        if (endY - startY > 100) {
-            elements.mapPanel.overlay.classList.remove('visible');
-        }
-        setTimeout(() => {
-            elements.mapPanel.content.style.transform = '';
-        }, 0);
-    });
+        elements.panel.overlay.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
+        });
+        elements.panel.closeBtn.addEventListener('click', () => elements.panel.overlay.classList.remove('visible'));
+    }
 
     init();
 });

@@ -7,51 +7,69 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1 id="header-title">Локации</h1>
-        </header>
+    <div id="date-time-view" class="view active">
+        <div class="date-time-container">
+            <h1>Найди свой корт</h1>
+            <p class="subtitle">Выберите дату и время для поиска свободных площадок</p>
+            
+            <div class="selector-container">
+                <div id="date-selector" class="selector"></div>
+            </div>
+            
+            <div class="selector-container">
+                <div id="time-selector" class="selector"></div>
+            </div>
 
-        <div id="view-switcher" class="view-switcher">
-            <button id="show-list-btn" class="switch-btn active">Список</button>
-            <button id="show-map-btn" class="switch-btn">На карте</button>
+            <div class="any-time-container">
+                <input type="checkbox" id="any-time-checkbox">
+                <label for="any-time-checkbox">Любое время</label>
+            </div>
         </div>
-
-        <main>
-            <div id="loader-container" class="loader-container">
-                <div class="padel-loader"></div>
-                <p>Загрузка...</p>
-            </div>
-
-            <div id="list-view" class="view">
-                <div id="location-list" class="location-list"></div>
-            </div>
-
-            <div id="map-view" class="view">
-                <div id="map"></div>
-            </div>
-        </main>
+        <div class="view-footer">
+            <button id="find-courts-btn" class="action-button primary">Найти площадки</button>
+        </div>
     </div>
 
-    <!-- Панель для карты -->
-    <div id="map-panel-overlay" class="panel-overlay">
-        <div id="map-location-panel" class="panel-content">
+    <div id="locations-view" class="view">
+        <div class="app-container">
+            <header>
+                <button id="back-to-picker-btn" class="header-back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div id="selected-filter-display"></div>
+            </header>
+
+            <div id="view-switcher" class="view-switcher">
+                <button id="show-list-btn" class="switch-btn active">Список</button>
+                <button id="show-map-btn" class="switch-btn">На карте</button>
+            </div>
+
+            <main>
+                <div id="loader-container" class="loader-container hidden">
+                    <div class="padel-loader"></div>
+                    <p>Ищем доступные площадки...</p>
+                </div>
+                <div id="list-view" class="sub-view">
+                    <div id="location-list" class="location-list"></div>
+                </div>
+                <div id="map-view" class="sub-view">
+                    <div id="map"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="location-panel-overlay" class="panel-overlay">
+        <div id="location-panel-content" class="panel-content">
             <div class="panel-drag-handle"></div>
             <div class="panel-header">
-                <div class="panel-header-top">
-                    <button id="panel-back-btn" class="panel-header-button back-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <h3 id="panel-location-name">Название локации</h3>
-                    <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
-                </div>
-                <p id="panel-location-description">Описание</p>
+                <h3 id="panel-location-name"></h3>
+                <p id="panel-location-description"></p>
+                <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
             </div>
-            <div id="panel-calendar-container" class="panel-calendar-container">
-                <div id="calendar-wrapper"></div>
-            </div>
+             <div id="panel-status-message" class="panel-status-message"></div>
             <div class="panel-body">
-                <button id="panel-select-btn" class="panel-button primary">Посмотреть свободные сеансы</button>
+                <button id="panel-action-btn" class="panel-button">Действие</button>
             </div>
             <div class="panel-footer">
                 <button id="panel-route-btn" class="panel-button-icon">
@@ -59,61 +77,16 @@
                     <span>Как добраться</span>
                 </button>
                 <button id="panel-info-btn" class="panel-button-icon">
-                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                     <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                     <span>Информация</span>
                 </button>
             </div>
         </div>
     </div>
-
-    <!-- Панель с информацией -->
-    <div id="info-panel-overlay" class="panel-overlay">
-        <div id="info-panel-content" class="panel-content">
-             <div class="panel-header">
-                <div class="panel-header-top">
-                    <button id="info-panel-back-btn" class="panel-header-button back-btn">
-                         <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <h3 id="info-panel-title">Информация</h3>
-                    <button id="info-panel-close-btn" class="panel-header-button close-btn">&times;</button>
-                </div>
-            </div>
-            <div class="info-panel-body">
-                <div id="info-image-slider-wrapper">
-                    <div id="info-image-slider" class="info-image-slider"></div>
-                </div>
-                <div class="info-details">
-                    <h2 id="info-location-name"></h2>
-                    <p id="info-location-address"></p>
-                    <p id="info-location-description"></p>
-                </div>
-            </div>
-            <footer class="info-panel-footer">
-                <button id="info-route-btn" class="info-action-button">Как добраться</button>
-                <a id="info-booking-btn" href="#" target="_blank" class="info-action-button primary">Забронировать</a>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Модальное окно для сессий -->
-    <div id="detail-modal" class="modal-overlay">
-        <div class="modal-content">
-            <header class="modal-header">
-                <h3 id="modal-date-header">Доступные сеансы</h3>
-                <button id="close-modal-btn" class="close-button">&times;</button>
-            </header>
-            <div class="modal-body">
-                <div id="sessions-grid" class="sessions-grid"></div>
-            </div>
-            <footer class="modal-footer">
-                <a id="booking-link-btn" href="#" target="_blank" class="action-button green hidden">🎾 Забронировать</a>
-                <button id="add-notification-btn" class="action-button">🔔 Уведомить на эту дату</button>
-            </footer>
-        </div>
-    </div>
-
+    
     <script src="https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU" type="text/javascript"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+

@@ -4,52 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Выбор корта</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="date-time-view" class="view active">
-        <div class="date-time-container">
-            <h1>Найди свой корт</h1>
-            <p class="subtitle">Выберите дату и время для поиска свободных площадок</p>
-            
-            <div class="selector-container">
-                <div id="date-selector" class="selector"></div>
-            </div>
-            
-            <div class="selector-container">
-                <div id="time-selector" class="selector"></div>
-            </div>
-
-            <div class="any-time-container">
-                <input type="checkbox" id="any-time-checkbox">
-                <label for="any-time-checkbox">Любое время</label>
-            </div>
+    <div class="app-container">
+        <!-- Экран 1: Выбор даты и времени -->
+        <div id="date-time-view" class="view active">
+            <header>
+                <h1>Выберите время</h1>
+            </header>
+            <main>
+                <div class="date-time-picker">
+                    <div class="date-picker-wrapper">
+                        <input type="text" id="date-picker" placeholder="Выберите дату">
+                    </div>
+                    <div class="time-picker-wrapper">
+                        <div id="time-picker" class="time-picker-grid"></div>
+                    </div>
+                </div>
+            </main>
+            <footer>
+                <button id="show-any-time-btn" class="any-time-btn">Показать любое время</button>
+                <button id="find-locations-btn" class="action-button primary">Найти локации</button>
+            </footer>
         </div>
-        <div class="view-footer">
-            <button id="find-courts-btn" class="action-button primary">Найти площадки</button>
-        </div>
-    </div>
 
-    <div id="locations-view" class="view">
-        <div class="app-container">
+        <!-- Экран 2: Список и карта локаций -->
+        <div id="locations-view" class="view">
             <header>
                 <button id="back-to-picker-btn" class="header-back-btn">
                     <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-                <div id="selected-filter-display"></div>
+                <div id="selected-time-display"></div>
             </header>
-
             <div id="view-switcher" class="view-switcher">
                 <button id="show-list-btn" class="switch-btn active">Список</button>
                 <button id="show-map-btn" class="switch-btn">На карте</button>
             </div>
-
             <main>
                 <div id="loader-container" class="loader-container hidden">
                     <div class="padel-loader"></div>
-                    <p>Ищем доступные площадки...</p>
+                    <p>Загрузка...</p>
                 </div>
-                <div id="list-view" class="sub-view">
+                <div id="list-view" class="sub-view active">
                     <div id="location-list" class="location-list"></div>
                 </div>
                 <div id="map-view" class="sub-view">
@@ -59,17 +57,22 @@
         </div>
     </div>
 
-    <div id="location-panel-overlay" class="panel-overlay">
-        <div id="location-panel-content" class="panel-content">
+    <!-- Панель для локации -->
+    <div id="map-panel-overlay" class="panel-overlay">
+        <div id="map-location-panel" class="panel-content">
             <div class="panel-drag-handle"></div>
             <div class="panel-header">
-                <h3 id="panel-location-name"></h3>
+                <div class="panel-header-top">
+                    <h3 id="panel-location-name"></h3>
+                    <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
+                </div>
                 <p id="panel-location-description"></p>
-                <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
+                <p id="panel-availability-status" class="hidden"></p>
             </div>
-             <div id="panel-status-message" class="panel-status-message"></div>
             <div class="panel-body">
-                <button id="panel-action-btn" class="panel-button">Действие</button>
+                <a id="panel-book-btn" href="#" target="_blank" class="panel-button green hidden">🎾 Забронировать</a>
+                <button id="panel-notify-btn" class="panel-button primary hidden">🔔 Уведомить на это время</button>
+                <button id="panel-show-all-sessions-btn" class="panel-button secondary hidden">Посмотреть все сеансы</button>
             </div>
             <div class="panel-footer">
                 <button id="panel-route-btn" class="panel-button-icon">
@@ -77,16 +80,46 @@
                     <span>Как добраться</span>
                 </button>
                 <button id="panel-info-btn" class="panel-button-icon">
-                     <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                     <span>Информация</span>
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Панель с информацией -->
+    <div id="info-panel-overlay" class="panel-overlay">
+        <div id="info-panel-content" class="panel-content">
+             <div class="panel-header">
+                <div class="panel-header-top">
+                    <button id="info-panel-back-btn" class="panel-header-button back-btn">
+                         <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <h3>Информация</h3>
+                    <button id="info-panel-close-btn" class="panel-header-button close-btn">&times;</button>
+                </div>
+            </div>
+            <div class="info-panel-body">
+                <div id="info-image-slider-wrapper">
+                    <div id="info-image-slider" class="info-image-slider"></div>
+                </div>
+                <div class="info-details">
+                    <h2 id="info-location-name"></h2>
+                    <p id="info-location-address"></p>
+                    <p id="info-location-description"></p>
+                </div>
+            </div>
+            <footer class="info-panel-footer">
+                <button id="info-route-btn" class="info-action-button">Как добраться</button>
+                <a id="info-booking-btn" href="#" target="_blank" class="info-action-button primary">Забронировать</a>
+            </footer>
+        </div>
+    </div>
     
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=8924b2b7-28f9-4032-bd17-6246a2afcca6&lang=ru_RU" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ&lang=ru_RU" type="text/javascript"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-

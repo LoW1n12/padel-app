@@ -11,21 +11,20 @@
     <div class="app-container">
         <!-- Экран 1: Выбор даты и времени -->
         <div id="date-time-view" class="view active">
-            <header>
+            <header class="photo-header">
+                <img src="https://images.unsplash.com/photo-1551748284-9553b1f79752?q=80&w=2574&auto=format&fit=crop" alt="Padel court">
                 <h1>Выберите время</h1>
             </header>
             <main>
                 <div class="date-time-picker">
-                    <div class="date-picker-wrapper">
-                        <input type="text" id="date-picker" placeholder="Выберите дату">
-                    </div>
-                    <div class="time-picker-wrapper">
-                        <div id="time-picker" class="time-picker-grid"></div>
+                    <input type="hidden" id="date-picker">
+                    <div class="time-selector-wrapper">
+                        <div id="time-selector" class="time-selector"></div>
                     </div>
                 </div>
             </main>
             <footer>
-                <button id="show-any-time-btn" class="any-time-btn">Показать любое время</button>
+                <button id="show-any-time-btn" class="any-time-btn">Показать на любое время</button>
                 <button id="find-locations-btn" class="action-button primary">Найти локации</button>
             </footer>
         </div>
@@ -34,7 +33,7 @@
         <div id="locations-view" class="view">
             <header>
                 <button id="back-to-picker-btn" class="header-back-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <div id="selected-time-display"></div>
             </header>
@@ -45,7 +44,6 @@
             <main>
                 <div id="loader-container" class="loader-container hidden">
                     <div class="padel-loader"></div>
-                    <p>Загрузка...</p>
                 </div>
                 <div id="list-view" class="sub-view active">
                     <div id="location-list" class="location-list"></div>
@@ -58,21 +56,19 @@
     </div>
 
     <!-- Панель для локации -->
-    <div id="map-panel-overlay" class="panel-overlay">
-        <div id="map-location-panel" class="panel-content">
+    <div id="location-panel-overlay" class="panel-overlay">
+        <div id="location-panel-content" class="panel-content">
             <div class="panel-drag-handle"></div>
             <div class="panel-header">
-                <div class="panel-header-top">
-                    <h3 id="panel-location-name"></h3>
-                    <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
-                </div>
-                <p id="panel-location-description"></p>
-                <p id="panel-availability-status" class="hidden"></p>
+                <h3 id="panel-location-name"></h3>
+                <button id="panel-close-btn" class="panel-header-button close-btn">&times;</button>
             </div>
             <div class="panel-body">
+                <p id="panel-location-description"></p>
+                <p id="panel-availability-status" class="hidden"></p>
                 <a id="panel-book-btn" href="#" target="_blank" class="panel-button green hidden">🎾 Забронировать</a>
                 <button id="panel-notify-btn" class="panel-button primary hidden">🔔 Уведомить на это время</button>
-                <button id="panel-show-all-sessions-btn" class="panel-button secondary hidden">Посмотреть все сеансы</button>
+                <button id="panel-show-all-sessions-btn" class="panel-button secondary">Посмотреть все сеансы</button>
             </div>
             <div class="panel-footer">
                 <button id="panel-route-btn" class="panel-button-icon">
@@ -87,13 +83,29 @@
         </div>
     </div>
 
+    <!-- Панель со всеми сеансами -->
+    <div id="all-sessions-panel-overlay" class="panel-overlay">
+        <div id="all-sessions-panel-content" class="panel-content expanded">
+            <div class="panel-header">
+                <div class="panel-header-top">
+                     <button id="all-sessions-back-btn" class="panel-header-button back-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <h3 id="all-sessions-location-name"></h3>
+                    <button id="all-sessions-close-btn" class="panel-header-button close-btn">&times;</button>
+                </div>
+            </div>
+            <div id="all-sessions-calendar-container" class="panel-calendar-container"></div>
+        </div>
+    </div>
+
     <!-- Панель с информацией -->
     <div id="info-panel-overlay" class="panel-overlay">
-        <div id="info-panel-content" class="panel-content">
+        <div id="info-panel-content" class="panel-content expanded">
              <div class="panel-header">
                 <div class="panel-header-top">
                     <button id="info-panel-back-btn" class="panel-header-button back-btn">
-                         <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                         <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                     <h3>Информация</h3>
                     <button id="info-panel-close-btn" class="panel-header-button close-btn">&times;</button>
@@ -104,7 +116,7 @@
                     <div id="info-image-slider" class="info-image-slider"></div>
                 </div>
                 <div class="info-details">
-                    <h2 id="info-location-name"></h2>
+                    <h2 id="info-location-name-details"></h2>
                     <p id="info-location-address"></p>
                     <p id="info-location-description"></p>
                 </div>

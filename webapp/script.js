@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = "https://common-toes-pay.loca.lt";
+    const API_BASE_URL = "https://little-facts-hug.loca.lt";
     const tg = window.Telegram.WebApp;
 
     tg.ready();
